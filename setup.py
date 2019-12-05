@@ -1,4 +1,5 @@
 from setuptools import setup
+import versioneer
 
 requirements = [
     'requests'
@@ -6,7 +7,7 @@ requirements = [
 
 setup(
     name='prism',
-    version='0.1.0',
+    version=versioneer.get_version(),
     description="Python API client to load data into Prism.",
     author="Curtis Hampton",
     author_email='CurtLHampton@gmail.com',
