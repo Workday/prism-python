@@ -262,7 +262,7 @@ class Prism:
         the bucket is returned.
 
         """
-        url = prism_endpoint + "/wBuckets"
+        url = self.prism_endpoint + "/wBuckets"
 
         if bucket_id is not None:
             url = url + "/" + bucket_id
