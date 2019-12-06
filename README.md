@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Workday/prism-python.svg?branch=master)](https://travis-ci.org/Workday/prism-python)
+
 # Prism-Python
 
 Python client library for interacting with Workday’s Prism API.
