@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Workday/prism-python.svg?branch=master)](https://travis-ci.org/Workday/prism-python)
+[![Build Status](https://travis-ci.com/Workday/prism-python.svg?branch=master)](https://travis-ci.com/Workday/prism-python)
 
 # Prism-Python
 
