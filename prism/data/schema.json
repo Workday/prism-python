@@ -1,0 +1,42 @@
+{
+    "fields": [
+        {
+            "defaultValue": "textField",
+            "description": "this is a Text Field",
+            "name": "State2",
+            "parseFormat": "",
+            "precision": 0,
+            "ordinal": 1,
+            "scale": 0,
+            "type": {
+                "id": "Schema_Field_Type=Text"
+            }
+        },
+        {
+            "defaultValue": "0",
+            "description": "this is an Integer Field",
+            "name": "Population2",
+            "parseFormat": "",
+            "precision": 9,
+            "ordinal": 2,
+            "scale": 0,
+            "type": {
+                "id": "Schema_Field_Type=Numeric"
+            }
+        }
+    ],
+    "parseOptions": {
+        "charset": {
+            "id": "Encoding=UTF-8"
+        },
+        "fieldsDelimitedBy": ",",
+        "fieldsEnclosedBy": "\"",
+        "headerLinesToIgnore": 1,
+        "type": {
+            "id": "Schema_File_Type=Delimited"
+        }
+    },
+    "schemaVersion": {
+        "id": "Schema_Version=1.0"
+    }
+}

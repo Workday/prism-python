@@ -13,6 +13,7 @@ setup(
     author_email='CurtLHampton@gmail.com',
     url='https://github.com/Workday/prism-python',
     packages=['prism'],
+    package_data={'prism': ['data/*']},
     install_requires=requirements,
     extras_require={
         'dev': [
