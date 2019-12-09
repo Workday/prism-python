@@ -14,6 +14,11 @@ setup(
     url='https://github.com/Workday/prism-python',
     packages=['prism'],
     install_requires=requirements,
+    extras_require={
+        'dev': [
+            'pytest',
+        ]
+    },
     keywords='prism',
     classifiers=[
         'Programming Language :: Python :: 3.6',
