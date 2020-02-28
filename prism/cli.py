@@ -3,17 +3,19 @@ import json
 import prism
 
 @click.group()
+@click.option('--base_url', envvar="workday_base_url", type=str)
+@click.option('--tenant_name', envvar="workday_tenant_name", type=str)
 @click.option('--client_id', envvar="prism_client_id", type=str)
 @click.option('--client_secret', envvar="prism_client_secret", type=str)
 @click.option('--refresh_token', envvar="prism_refresh_token", type=str)
 @click.pass_context
-def main(ctx, client_id, client_secret, refresh_token):
+def main(ctx, base_url, tenant_name, client_id, client_secret, refresh_token):
     """CLI for interacting with Workday’s Prism API"""
 
     # initialize the prism class with your credentials
     p = prism.Prism(
-        "https://wd5-impl-services1.workday.com",
-        "workday",
+        base_url,
+        tenant_name,
         client_id,
         client_secret,
         refresh_token
@@ -31,7 +33,7 @@ def main(ctx, client_id, client_secret, refresh_token):
 def list(ctx):
     """List all datasets of type API"""
 
-    # get the prism object
+    # get the initialized prism class
     p = ctx.obj['p']
 
     # list the datasets
@@ -49,7 +51,7 @@ def list(ctx):
 def upload(ctx, dataset_name, schema_path, data_path):
     """Upload a gzip CSV file"""
 
-    # get the prism object
+    # get the initialized prism class
     p = ctx.obj['p']
 
     # clean up the dataset name

@@ -46,8 +46,8 @@ class Prism:
 
     Attributes
     ----------
-    base_url : str
-        The base URL for the API client
+    rest_endpoint : str
+        The URL for the API client
 
     tenant_name : str
         The name of your Workday tenant
