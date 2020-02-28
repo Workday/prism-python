@@ -40,7 +40,7 @@ def list(ctx):
     status = p.list_dataset()
 
     # print message
-    click.echo(f"There are {status['total']} API datasets")
+    click.echo("There are {} API datasets".format(status['total']))
     click.echo(json.dumps(status['data'], indent=2, sort_keys=True))
 
 @main.command()
@@ -76,7 +76,7 @@ def upload(ctx, dataset_name, schema_path, data_path):
     status = p.list_dataset(dataset["id"])
 
     # print message
-    click.echo(f"{dataset_name} has successfully uploaded")
+    click.echo("{} has successfully uploaded".format(dataset_name))
     click.echo(json.dumps(status['data'], indent=2, sort_keys=True))
 
 if __name__ == "__main__":
