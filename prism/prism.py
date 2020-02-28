@@ -91,7 +91,7 @@ class Prism:
 
         Returns
         -------
-        If the request is succesful, the access token is added to the Prism()
+        If the request is successful, the access token is added to the Prism()
         class.
 
         """
@@ -123,7 +123,7 @@ class Prism:
 
         Returns
         -------
-        If the request is succesful, a dictionary containing information about
+        If the request is successful, a dictionary containing information about
         the new dataset is returned.
 
         """
@@ -159,7 +159,7 @@ class Prism:
 
         Returns
         -------
-        If the request is succesful, a dictionary containing information about
+        If the request is successful, a dictionary containing information about
         the new bucket is returned.
 
         """
