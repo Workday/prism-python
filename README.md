@@ -2,10 +2,10 @@
 
 # Prism-Python
 
-Python client library for interacting with Workday’s Prism API.
+Python client library  and command line interface (CLI) for interacting with Workday’s Prism API.
 
 ## Install
-You may install the latest version by cloning this repositiory from GitHub
+You may install the latest version by cloning this repository from GitHub
 and using `pip` to install from the local directory:
 
 ```bash
@@ -33,16 +33,41 @@ Prism class requires as parameters.
 In Workday, obtain the Workday REST API endpoint that the Prism class requires
 as a parameter.
 
+3. For ease of use, set the following environment variables using the values obtained above:
+
+```bash
+$ export workday_base_url=<INSERT WORKDAY BASE URL HERE>
+$ export workday_tenant_name=<INSERT WORKDAY TENANT NAME HERE>
+$ export prism_client_id=<INERT PRISM CLIENT ID HERE>
+$ export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
+$ export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
+```
+
 ## Example
+
+### Using the CLI
+
+```bash
+# view the help page
+$ prism --help
+
+# list all datasets of type API
+$ prism list
+
+# upload a gzip CSV file
+$ prism upload my_new_dataset /path/to/schema.json /path/to/file.csv.gz
+```
+
+### Using as a Python Package
 
 ```python
 import os
 import prism
 
-# initalize the prism class with your credentials
+# initialize the prism class with your credentials
 p = prism.Prism(
-    "https://wd2-impl-services1.workday.com",
-    "workday",
+    os.getenv("workday_base_url"),
+    os.getenv("workday_tenant_name"),
     os.getenv("prism_client_id"), 
     os.getenv("prism_client_secret"),
     os.getenv("prism_refresh_token") 
