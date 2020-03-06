@@ -3,11 +3,16 @@ import json
 import prism
 
 @click.group()
-@click.option('--base_url', envvar="workday_base_url", type=str)
-@click.option('--tenant_name', envvar="workday_tenant_name", type=str)
-@click.option('--client_id', envvar="prism_client_id", type=str)
-@click.option('--client_secret', envvar="prism_client_secret", type=str)
-@click.option('--refresh_token', envvar="prism_refresh_token", type=str)
+@click.option('--base_url', envvar="workday_base_url", type=str, required=True,
+              help="The base URL for the API client")
+@click.option('--tenant_name', envvar="workday_tenant_name", type=str, required=True,
+              help="The name of your Workday tenant")
+@click.option('--client_id', envvar="prism_client_id", type=str, required=True,
+              help="The Client ID for your registered API client")
+@click.option('--client_secret', envvar="prism_client_secret", type=str, required=True,
+              help="The Client Secret for your registered API client")
+@click.option('--refresh_token', envvar="prism_refresh_token", type=str, required=True,
+              help="The Refresh Token for your registered API client")
 @click.pass_context
 def main(ctx, base_url, tenant_name, client_id, client_secret, refresh_token):
     """CLI for interacting with Workday’s Prism API"""
@@ -29,7 +34,7 @@ def main(ctx, base_url, tenant_name, client_id, client_secret, refresh_token):
 
 
 @main.command()
-@click.option("--id", default=None, type=str, help="The dataset id")
+@click.option("--id", default=None, type=str, help="The ID of the dataset to obtain details about")
 @click.pass_context
 def list(ctx, id):
     """List all datasets of type API"""
@@ -48,9 +53,12 @@ def list(ctx, id):
         click.echo(json.dumps(status, indent=2, sort_keys=True))
 
 @main.command()
-@click.argument('dataset_name', type=str)
-@click.argument('schema_path', type=click.Path())
-@click.argument('data_path', type=click.Path())
+@click.option('--dataset_name', type=str, required=True,
+              help="The dataset name. The name must be unique and conform to the name validation rules")
+@click.option('--schema_path', type=click.Path(), required=True,
+              help="The path to your schema file")
+@click.option('--data_path', type=click.Path(), required=True,
+              help="The path to your gzip compressed data file")
 @click.pass_context
 def upload(ctx, dataset_name, schema_path, data_path):
     """Upload a gzip CSV file"""
