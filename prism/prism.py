@@ -119,7 +119,7 @@ class Prism:
         ----------
         dataset_name : str
             The dataset name. The name must be unique and conform to the name
-            validation riles.
+            validation rules.
 
         Returns
         -------
@@ -253,7 +253,7 @@ class Prism:
         Parameters
         ----------
         bucket_id : str
-            The ID of the bucket to obtain datails about. If the default value
+            The ID of the bucket to obtain details about. If the default value
             of None is specified, details regarding all buckets is returned.
 
         Returns
@@ -284,7 +284,7 @@ class Prism:
         Parameters
         ----------
         dataset_id : str
-            The ID of the dataset to obtain datails about. If the default value
+            The ID of the dataset to obtain details about. If the default value
             of None is specified, details regarding all datasets is returned.
 
         Returns
