@@ -29,19 +29,23 @@ def main(ctx, base_url, tenant_name, client_id, client_secret, refresh_token):
 
 
 @main.command()
+@click.option("--id", default=None, type=str, help="The dataset id")
 @click.pass_context
-def list(ctx):
+def list(ctx, id):
     """List all datasets of type API"""
 
     # get the initialized prism class
     p = ctx.obj['p']
 
     # list the datasets
-    status = p.list_dataset()
+    status = p.list_dataset(dataset_id=id)
 
     # print message
-    click.echo("There are {} API datasets".format(status['total']))
-    click.echo(json.dumps(status['data'], indent=2, sort_keys=True))
+    if id == None:
+        click.echo("There are {} API datasets".format(status['total']))
+        click.echo(json.dumps(status['data'], indent=2, sort_keys=True))
+    else:
+        click.echo(json.dumps(status, indent=2, sort_keys=True))
 
 @main.command()
 @click.argument('dataset_name', type=str)
