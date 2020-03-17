@@ -108,6 +108,7 @@ class Prism:
 
         if r.status_code == 200:
             logging.info("Successfully obtained bearer token")
+            logging.info("token_endpoint=" + self.token_endpoint)
             self.bearer_token = r.json()["access_token"]
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -140,6 +141,7 @@ class Prism:
 
         if r.status_code == 201:
             logging.info("Successfully created an empty API dataset")
+            logging.info("url=" + url)
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
@@ -181,6 +183,7 @@ class Prism:
 
         if r.status_code == 201:
             logging.info("Successfully created a new wBucket")
+            logging.info("url=" + url)
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
@@ -215,6 +218,7 @@ class Prism:
 
         if r.status_code == 200:
             logging.info("Successfully uploaded file to the bucket")
+            logging.info("url=" + url)
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
@@ -244,6 +248,7 @@ class Prism:
 
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
+            logging.info("url=" + url)
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
@@ -274,6 +279,7 @@ class Prism:
         if r.status_code == 200:
             logging.info(
                 "Successfully obtained information about your buckets")
+            logging.info("url=" + url)
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -305,6 +311,7 @@ class Prism:
         if r.status_code == 200:
             logging.info(
                 "Successfully obtained information about your datasets")
+            logging.info("url=" + url)
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
