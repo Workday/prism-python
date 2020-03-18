@@ -174,7 +174,7 @@ class Prism:
 
         data = {
             "name": "table_change_" + str(random.randint(100000, 999999)),
-            schema,
+            schema
         }
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
