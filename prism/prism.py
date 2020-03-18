@@ -148,8 +148,8 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_bucket(self, schema, dataset_id):
-        """Create a temporary bucket to upload files.
+    def edit_dataset(self, schema, dataset_id):
+        """Edit a table
 
         Parameters
         ----------
@@ -157,15 +157,15 @@ class Prism:
             A dictionary containing the schema for your dataset.
 
         dataset_id : str
-            The ID of the dataset that this bucket is to be associated with.
+            The ID of the dataset/table that this dataset/table is to be associated with.
 
         Returns
         -------
         If the request is succesful, a dictionary containing information about
-        the new bucket is returned.
+        the new dataset/table is returned.
 
         """
-        url = self.prism_endpoint + "/wBuckets"
+        url = self.prism_endpoint + "/datasets/" + dataset_id
 
         headers = {
             "Authorization": "Bearer " + self.bearer_token,
@@ -173,22 +173,64 @@ class Prism:
         }
 
         data = {
-            "name": "bucket_" + str(random.randint(100000, 999999)),
-            "operation": {"id": "Operation_Type=Replace"},
-            "targetDataset": {"id": dataset_id},
-            "schema": schema,
+            "name": "table_change_" + str(random.randint(100000, 999999)),
+            schema,
         }
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
+        logging.info("url=" + url)
+
         if r.status_code == 201:
-            logging.info("Successfully created a new wBucket")
+            logging.info("Successfully edited a dataset/table")
             logging.info("url=" + url)
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
+
+def create_bucket(self, schema, dataset_id):
+    """Create a temporary bucket to upload files.
+
+    Parameters
+    ----------
+    schema : dict
+        A dictionary containing the schema for your dataset.
+
+    dataset_id : str
+        The ID of the dataset that this bucket is to be associated with.
+
+    Returns
+    -------
+    If the request is succesful, a dictionary containing information about
+    the new bucket is returned.
+
+    """
+    url = self.prism_endpoint + "/wBuckets"
+
+    headers = {
+        "Authorization": "Bearer " + self.bearer_token,
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "name": "bucket_" + str(random.randint(100000, 999999)),
+        "operation": {"id": "Operation_Type=Replace"},
+        "targetDataset": {"id": dataset_id},
+        "schema": schema,
+    }
+
+    r = requests.post(url, headers=headers, data=json.dumps(data))
+
+    if r.status_code == 201:
+        logging.info("Successfully created a new wBucket")
+        logging.info("url=" + url)
+        return r.json()
+    elif r.status_code == 400:
+        logging.warning(r.json()["errors"][0]["error"])
+    else:
+        logging.warning("HTTP Error {}".format(r.status_code))
 
     def upload_file_to_bucket(self, bucket_id, filename):
         """Upload a file to a given bucket.
