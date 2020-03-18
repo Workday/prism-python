@@ -73,8 +73,8 @@ class Prism:
         self.refresh_token = refresh_token
         self.token_endpoint = "{}/ccx/oauth2/{}/token".format(
             base_url, tenant_name)
-        self.rest_endpoint = "{}/ccx/api/v1/{}".format(base_url, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v1/{}".format(
+        self.rest_endpoint = "{}/ccx/api/v2/{}".format(base_url, tenant_name)
+        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v2/{}".format(
             base_url, tenant_name
         )
         self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(
