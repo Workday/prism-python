@@ -196,50 +196,6 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def delete_bucket(self, schema, dataset_id):
-        """Create a temporary bucket to upload files.
-
-        Parameters
-        ----------
-        schema : dict
-            A dictionary containing the schema for your dataset.
-
-        dataset_id : str
-            The ID of the dataset that this bucket is to be associated with.
-
-        Returns
-        -------
-        If the request is succesful, a dictionary containing information about
-        the new bucket is returned.
-
-        """
-        url = self.prism_endpoint + "/wBuckets"
-
-        headers = {
-            "Authorization": "Bearer " + self.bearer_token,
-            "Content-Type": "application/json",
-        }
-
-        data = {
-            "name": "bucket_" + str(random.randint(100000, 999999)),
-            "operation": {"id": "Operation_Type=Delete"},
-            "targetDataset": {"id": dataset_id},
-            "schema": schema,
-        }
-
-        r = requests.post(url, headers=headers, data=json.dumps(data))
-
-        #Extra Debug - remove this in the future
-        logging.info("**create_bucket url=" + url)
-
-        if r.status_code == 201:
-            logging.info("Successfully created a new wBucket")
-            return r.json()
-        elif r.status_code == 400:
-            logging.warning(r.json()["errors"][0]["error"])
-        else:
-            logging.warning("HTTP Error {}".format(r.status_code))
-
     def upload_file_to_bucket(self, bucket_id, filename):
         """Upload a file to a given bucket.
 
