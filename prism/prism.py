@@ -364,3 +364,56 @@ class Prism:
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
+
+    def convert_describe_schema_to_bucket_schema(self, describe_schema):
+        """Convert schema (derived from describe dataset/table) to bucket schema
+
+        Parameters
+        ----------
+        schema : dict
+            A dictionary containing the describe schema for your dataset.
+
+        Returns
+        -------
+        If the request is succesful, a dictionary containing the bucket schema is returned.
+        The results can then be passed to the create_bucket function
+
+        """
+
+        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object, but this is itself a
+        # list (with just one item) so needs the list index, in this case 0. 'fields' is found in the dict that is in ['data'][0]
+        fields = describe_schema['data'][0]['fields']
+
+        # Now trim our fields data to keep just what we need
+        for i in fields:
+            del i['id']
+            del i['displayName']
+            del i['fieldId']
+
+        # Get rid of the WPA_ fields...
+        fields[:] = [x for x in fields if not "WPA" in x['name']]
+
+        # The "header" for the load schema
+        bucket_schema = {
+            "parseOptions":{
+            "fieldsDelimitedBy":",",
+            "fieldsEnclosedBy":"\"",
+            "headerLinesToIgnore":1,
+            "charset":{
+                "id":"Encoding=UTF-8"
+                },
+            "type":{
+                "id":"Schema_File_Type=Delimited"
+                }
+            }
+        }
+
+        # The footer for the load schema
+        schemaVersion={
+            "id":"Schema_Version=1.0"
+            }
+
+        bucket_schema['fields']=fields
+        bucket_schema['schemaVersion']=schemaVersion
+
+        return bucket_schema
