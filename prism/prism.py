@@ -106,9 +106,11 @@ class Prism:
 
         r = requests.post(self.token_endpoint, headers=headers, data=data)
 
+        #Extra Debug - remove this in the future
+        logging.info("** create_bearer_token token_endpoint=" + self.token_endpoint)
+        
         if r.status_code == 200:
             logging.info("Successfully obtained bearer token")
-            logging.info("token_endpoint=" + self.token_endpoint)
             self.bearer_token = r.json()["access_token"]
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -139,17 +141,19 @@ class Prism:
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
+        #Extra Debug - remove this in the future
+        logging.info("** create_dataset url=" + url)
+        
         if r.status_code == 201:
             logging.info("Successfully created an empty API dataset")
-            logging.info("url=" + url)
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def edit_dataset(self, schema, dataset_id):
-        """Edit a table
+    def create_bucket(self, schema, dataset_id):
+        """Create a temporary bucket to upload files.
 
         Parameters
         ----------
@@ -157,15 +161,15 @@ class Prism:
             A dictionary containing the schema for your dataset.
 
         dataset_id : str
-            The ID of the dataset/table that this dataset/table is to be associated with.
+            The ID of the dataset that this bucket is to be associated with.
 
         Returns
         -------
         If the request is succesful, a dictionary containing information about
-        the new dataset/table is returned.
+        the new bucket is returned.
 
         """
-        url = self.prism_endpoint + "/datasets/" + dataset_id
+        url = self.prism_endpoint + "/wBuckets"
 
         headers = {
             "Authorization": "Bearer " + self.bearer_token,
@@ -173,64 +177,24 @@ class Prism:
         }
 
         data = {
-            "name": "table_change_" + str(random.randint(100000, 999999)),
-            {schema}
+            "name": "bucket_" + str(random.randint(100000, 999999)),
+            "operation": {"id": "Operation_Type=Replace"},
+            "targetDataset": {"id": dataset_id},
+            "schema": schema,
         }
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
-        logging.info("url=" + url)
+        #Extra Debug - remove this in the future
+        logging.info("**create_bucket url=" + url)
 
         if r.status_code == 201:
-            logging.info("Successfully edited a dataset/table")
-            logging.info("url=" + url)
+            logging.info("Successfully created a new wBucket")
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
-
-def create_bucket(self, schema, dataset_id):
-    """Create a temporary bucket to upload files.
-
-    Parameters
-    ----------
-    schema : dict
-        A dictionary containing the schema for your dataset.
-
-    dataset_id : str
-        The ID of the dataset that this bucket is to be associated with.
-
-    Returns
-    -------
-    If the request is succesful, a dictionary containing information about
-    the new bucket is returned.
-
-    """
-    url = self.prism_endpoint + "/wBuckets"
-
-    headers = {
-        "Authorization": "Bearer " + self.bearer_token,
-        "Content-Type": "application/json",
-    }
-
-    data = {
-        "name": "bucket_" + str(random.randint(100000, 999999)),
-        "operation": {"id": "Operation_Type=Replace"},
-        "targetDataset": {"id": dataset_id},
-        "schema": schema,
-    }
-
-    r = requests.post(url, headers=headers, data=json.dumps(data))
-
-    if r.status_code == 201:
-        logging.info("Successfully created a new wBucket")
-        logging.info("url=" + url)
-        return r.json()
-    elif r.status_code == 400:
-        logging.warning(r.json()["errors"][0]["error"])
-    else:
-        logging.warning("HTTP Error {}".format(r.status_code))
 
     def upload_file_to_bucket(self, bucket_id, filename):
         """Upload a file to a given bucket.
@@ -258,9 +222,12 @@ def create_bucket(self, schema, dataset_id):
 
         r = requests.post(url, headers=headers, files=files)
 
+
+        #Extra Debug - remove this in the future
+        logging.info("**upload_file_to_bucket url=" + url)
+
         if r.status_code == 200:
             logging.info("Successfully uploaded file to the bucket")
-            logging.info("url=" + url)
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
@@ -288,9 +255,11 @@ def create_bucket(self, schema, dataset_id):
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
+        #Extra Debug - remove this in the future
+        logging.info("**complete_bucket url=" + url)
+
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
-            logging.info("url=" + url)
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
@@ -318,10 +287,12 @@ def create_bucket(self, schema, dataset_id):
 
         r = requests.get(url, headers=headers)
 
+        #Extra Debug - remove this in the future
+        logging.info("** list_bucket url=" + url)
+
         if r.status_code == 200:
             logging.info(
                 "Successfully obtained information about your buckets")
-            logging.info("url=" + url)
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -350,10 +321,46 @@ def create_bucket(self, schema, dataset_id):
 
         r = requests.get(url, headers=headers)
 
+        #Extra Debug - remove this in the future
+        logging.info("**list_dataset url=" + url)
+
         if r.status_code == 200:
             logging.info(
                 "Successfully obtained information about your datasets")
-            logging.info("url=" + url)
+            return r.json()
+        else:
+            logging.warning("HTTP Error {}".format(r.status_code))
+
+    def describe_dataset(self, dataset_id=None):
+        """Obtain details for for a given dataset/table
+
+        Parameters
+        ----------
+        dataset_id : str
+            The ID of the dataset to obtain datails about. If the default value
+            of None is specified, details regarding all datasets is returned.
+
+        Returns
+        -------
+        If the request is successful, a dictionary containing information about
+        the dataset is returned.
+
+        """
+        url = self.prism_endpoint + "/datasets"
+
+        if dataset_id is not None:
+            url = url + "/" + dataset_id + "/describe"
+
+        headers = {"Authorization": "Bearer " + self.bearer_token}
+
+        r = requests.get(url, headers=headers)
+
+        #Extra Debug - remove this in the future
+        logging.info("**describe_dataset url=" + url)
+
+        if r.status_code == 200:
+            logging.info(
+                "Successfully obtained information about your datasets")
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
