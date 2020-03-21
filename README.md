@@ -2,7 +2,7 @@
 
 # Prism-Python
 
-Python client library for interacting with Workday’s Prism API.
+Python client library for interacting with Workday’s Prism API V2.
 
 ## Install
 You may install the latest version by cloning this repositiory from GitHub
@@ -33,7 +33,7 @@ Prism class requires as parameters.
 In Workday, obtain the Workday REST API endpoint that the Prism class requires
 as a parameter.
 
-## Example
+## Example 1 - Create a new Prism table with data
 
 ```python
 import os
@@ -43,18 +43,18 @@ import prism
 p = prism.Prism(
     "https://wd2-impl-services1.workday.com",
     "workday",
-    os.getenv("prism_client_id"), 
+    os.getenv("prism_client_id"),
     os.getenv("prism_client_secret"),
-    os.getenv("prism_refresh_token") 
+    os.getenv("prism_refresh_token")
 )
 
 # create the bearer token
 p.create_bearer_token()
 
-# create an empty API dataset
+# create an empty API table
 dataset = p.create_dataset("my_new_dataset")
 
-# read in your dataset schema
+# read in your table schema
 schema = prism.load_schema("/path/to/schema.json")
 
 # create a new bucket to hold your file
@@ -66,8 +66,52 @@ p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
 # complete the bucket and upload your file
 p.complete_bucket(bucket["id"])
 
-# check the status of the dataset you just created
+# check the status of the table you just created
 status = p.list_dataset(dataset["id"])
+print(status)
+```
+
+## Example 2 - Assuming you already have a Prism table created, this shows you how to replace or append rows to it
+
+```python
+import os
+import prism
+
+# initalize the prism class with your credentials
+p = prism.Prism(
+    "https://wd2-impl-services1.workday.com",
+    "workday",
+    os.getenv("prism_client_id"),
+    os.getenv("prism_client_secret"),
+    os.getenv("prism_refresh_token")
+)
+
+# create the bearer token
+p.create_bearer_token()
+
+# This table_wid represents the Workday ID for a Workday Prism table
+table_wid = "6ea84700d0cf015f1b50316c3008b524"
+
+# Describe the Prism table i.e. get the schema related to the table
+my_schema = p.describe_dataset(table_wid)
+
+# Convert the describe schema to bucket schema
+schema = p.convert_describe_schema_to_bucket_schema(my_schema)
+
+# create a new bucket to hold your file (by default this performs a "Replace" which replaces the data)
+bucket = p.create_bucket(schema, table_wid)
+
+# Add extra parameter "Append" if operation is to Append
+#bucket = p.create_bucket(schema, table_wid, "Append")
+
+# add your file the bucket you just created
+p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
+
+# complete the bucket and upload your file
+p.complete_bucket(bucket["id"])
+
+# check the status of the table you just created
+status = p.list_dataset(table_wid)
 print(status)
 ```
 
