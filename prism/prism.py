@@ -152,7 +152,7 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_bucket(self, schema, dataset_id):
+    def create_bucket(self, schema, dataset_id, operation="Replace"):
         """Create a temporary bucket to upload files.
 
         Parameters
@@ -162,6 +162,10 @@ class Prism:
 
         dataset_id : str
             The ID of the dataset that this bucket is to be associated with.
+
+        operation : str
+            If not specified, defaults to "Replace" operation
+            Optional values - "Replace" or "Append"
 
         Returns
         -------
@@ -178,7 +182,7 @@ class Prism:
 
         data = {
             "name": "bucket_" + str(random.randint(100000, 999999)),
-            "operation": {"id": "Operation_Type=Replace"},
+            "operation": {"id": "Operation_Type=" + operation},
             "targetDataset": {"id": dataset_id},
             "schema": schema,
         }
