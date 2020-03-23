@@ -1,4 +1,4 @@
-![Python package](https://github.com/CurtLH/prism-python/workflows/Python%20package/badge.svg)
+![Python package](https://github.com/Workday/prism-python/workflows/Python%20package/badge.svg)
 
 # Prism-Python
 
