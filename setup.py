@@ -5,7 +5,7 @@ with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='prism',
+    name="prism",
     version=versioneer.get_version(),
     description="Python API client to load data into Prism.",
     author="Curtis Hampton",
@@ -19,14 +19,7 @@ setup(
         ],
     },
     install_requires=requirements,
-    extras_require={
-        'dev': [
-            'pytest',
-        ]
-    },
-    keywords='prism',
-    classifiers=[
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-    ]
+    extras_require={"dev": ["pytest",]},
+    keywords="prism",
+    classifiers=["Programming Language :: Python :: 3.6", "Programming Language :: Python :: 3.7",],
 )
