@@ -1,10 +1,8 @@
 from setuptools import setup
 import versioneer
 
-requirements = [
-    'click',
-    'requests'
-]
+with open("requirements.txt") as f:
+    requirements = f.read().splitlines()
 
 setup(
     name='prism',
