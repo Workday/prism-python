@@ -19,7 +19,7 @@ setup(
         ],
     },
     install_requires=requirements,
-    extras_require={"dev": ["pytest",]},
+    extras_require={"dev": ["pytest"]},
     keywords="prism",
-    classifiers=["Programming Language :: Python :: 3.6", "Programming Language :: Python :: 3.7",],
+    classifiers=["Programming Language :: Python :: 3.6", "Programming Language :: Python :: 3.7"],
 )
