@@ -13,9 +13,7 @@ import requests
 # set up basic logging
 logger = logging.getLogger()
 handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s',
-    "%Y-%m-%d %H:%M:%S")
+formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -62,23 +60,17 @@ class Prism:
         The Refresh Token for your registered API client
     """
 
-    def __init__(self, base_url, tenant_name, client_id,
-                 client_secret, refresh_token):
+    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token):
         """Init the Prism class with required attributes."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
-        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(
-            base_url, tenant_name)
+        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(base_url, tenant_name)
         self.rest_endpoint = "{}/ccx/api/v1/{}".format(base_url, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v1/{}".format(
-            base_url, tenant_name
-        )
-        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(
-            base_url, tenant_name
-        )
+        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v1/{}".format(base_url, tenant_name)
+        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(base_url, tenant_name)
         self.bearer_token = None
 
     def create_bearer_token(self):
@@ -271,8 +263,7 @@ class Prism:
         r = requests.get(url, headers=headers)
 
         if r.status_code == 200:
-            logging.info(
-                "Successfully obtained information about your buckets")
+            logging.info("Successfully obtained information about your buckets")
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -302,8 +293,7 @@ class Prism:
         r = requests.get(url, headers=headers)
 
         if r.status_code == 200:
-            logging.info(
-                "Successfully obtained information about your datasets")
+            logging.info("Successfully obtained information about your datasets")
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
