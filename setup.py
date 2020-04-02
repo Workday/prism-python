@@ -13,7 +13,7 @@ setup(
     url="https://github.com/Workday/prism-python",
     packages=["prism"],
     package_data={"prism": ["data/*"]},
-    entry_points={"console_scripts": ["prism=prism.cli:main",],},
+    entry_points={"console_scripts": ["prism=prism.cli:main"]},
     install_requires=requirements,
     extras_require={"dev": ["pytest"]},
     keywords="prism",

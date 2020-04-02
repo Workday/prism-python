@@ -56,7 +56,7 @@ def list(ctx, id):
     status = p.list_dataset(dataset_id=id)
 
     # print message
-    if id == None:
+    if id is None:
         click.echo("There are {} API datasets".format(status["total"]))
         click.echo(json.dumps(status["data"], indent=2, sort_keys=True))
     else:
@@ -80,7 +80,7 @@ def upload(ctx, dataset_name, schema_path, data_path):
     p = ctx.obj["p"]
 
     # clean up the dataset name
-    dataset_name = dateset_name.replace(" ", "_")
+    dataset_name = dataset_name.replace(" ", "_")
 
     # create an empty API dataset
     dataset = p.create_dataset(dataset_name)
