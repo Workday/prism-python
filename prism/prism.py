@@ -47,7 +47,7 @@ class Prism:
     Attributes
     ----------
     base_url : str
-        The base URL for the API client
+        The URL for the API client
 
     tenant_name : str
         The name of your Workday tenant
@@ -60,12 +60,11 @@ class Prism:
 
     refresh_token : str
         The Refresh Token for your registered API client
-
     """
 
     def __init__(self, base_url, tenant_name, client_id,
                  client_secret, refresh_token):
-        """Init the Prism class with required attribues."""
+        """Init the Prism class with required attributes."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
@@ -91,7 +90,7 @@ class Prism:
 
         Returns
         -------
-        If the request is succesful, the access token is added to the Prism()
+        If the request is successful, the access token is added to the Prism()
         class.
 
         """
@@ -119,11 +118,11 @@ class Prism:
         ----------
         dataset_name : str
             The dataset name. The name must be unique and conform to the name
-            validation riles.
+            validation rules.
 
         Returns
         -------
-        If the request is succesful, a dictionary containing information about
+        If the request is successful, a dictionary containing information about
         the new dataset is returned.
 
         """
@@ -159,7 +158,7 @@ class Prism:
 
         Returns
         -------
-        If the request is succesful, a dictionary containing information about
+        If the request is successful, a dictionary containing information about
         the new bucket is returned.
 
         """
@@ -253,7 +252,7 @@ class Prism:
         Parameters
         ----------
         bucket_id : str
-            The ID of the bucket to obtain datails about. If the default value
+            The ID of the bucket to obtain details about. If the default value
             of None is specified, details regarding all buckets is returned.
 
         Returns
@@ -284,7 +283,7 @@ class Prism:
         Parameters
         ----------
         dataset_id : str
-            The ID of the dataset to obtain datails about. If the default value
+            The ID of the dataset to obtain details about. If the default value
             of None is specified, details regarding all datasets is returned.
 
         Returns
