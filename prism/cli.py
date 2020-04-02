@@ -8,11 +8,11 @@ import prism
 @click.option('--tenant_name', envvar="workday_tenant_name", type=str, required=True,
               help="The name of your Workday tenant")
 @click.option('--client_id', envvar="prism_client_id", type=str, required=True,
-              help="The Client ID for your registered API client")
+              help="The client ID for your registered API client")
 @click.option('--client_secret', envvar="prism_client_secret", type=str, required=True,
-              help="The Client Secret for your registered API client")
+              help="The client secret for your registered API client")
 @click.option('--refresh_token', envvar="prism_refresh_token", type=str, required=True,
-              help="The Refresh Token for your registered API client")
+              help="The refresh token for your registered API client")
 @click.pass_context
 def main(ctx, base_url, tenant_name, client_id, client_secret, refresh_token):
     """CLI for interacting with Workday’s Prism API"""
