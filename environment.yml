@@ -3,5 +3,8 @@ channels:
   - defaults
 dependencies:
   - python=3.7
-  - requests
+  - click>=6,<8
+  - requests>=2.20.0,<3
   - pytest
+  - black
+  - flake8
