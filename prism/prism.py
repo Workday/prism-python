@@ -64,7 +64,7 @@ class Prism:
     """
 
     def __init__(self, base_url, tenant_name, client_id,
-                 client_secret, refresh_token):
+                 client_secret, refresh_token, version="v2"):
         """Init the Prism class with required attribues."""
         self.base_url = base_url
         self.tenant_name = tenant_name
@@ -73,9 +73,10 @@ class Prism:
         self.refresh_token = refresh_token
         self.token_endpoint = "{}/ccx/oauth2/{}/token".format(
             base_url, tenant_name)
-        self.rest_endpoint = "{}/ccx/api/v2/{}".format(base_url, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v2/{}".format(
-            base_url, tenant_name
+        self.version=version
+        self.rest_endpoint = "{}/ccx/api/{}/{}".format(base_url, version, tenant_name)
+        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(
+            base_url, version, tenant_name
         )
         self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(
             base_url, tenant_name
@@ -105,9 +106,6 @@ class Prism:
         }
 
         r = requests.post(self.token_endpoint, headers=headers, data=data)
-
-        #Extra Debug - remove this in the future
-        logging.info("** create_bearer_token token_endpoint=" + self.token_endpoint)
 
         if r.status_code == 200:
             logging.info("Successfully obtained bearer token")
@@ -140,9 +138,6 @@ class Prism:
         data = {"name": dataset_name}
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
-
-        #Extra Debug - remove this in the future
-        logging.info("** create_dataset url=" + url)
 
         if r.status_code == 201:
             logging.info("Successfully created an empty API dataset")
@@ -189,9 +184,6 @@ class Prism:
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
-        #Extra Debug - remove this in the future
-        logging.info("**create_bucket url=" + url)
-
         if r.status_code == 201:
             logging.info("Successfully created a new wBucket")
             return r.json()
@@ -226,10 +218,6 @@ class Prism:
 
         r = requests.post(url, headers=headers, files=files)
 
-
-        #Extra Debug - remove this in the future
-        logging.info("**upload_file_to_bucket url=" + url)
-
         if r.status_code == 200:
             logging.info("Successfully uploaded file to the bucket")
         else:
@@ -259,9 +247,6 @@ class Prism:
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
-        #Extra Debug - remove this in the future
-        logging.info("**complete_bucket url=" + url)
-
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
         else:
@@ -290,9 +275,6 @@ class Prism:
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
         r = requests.get(url, headers=headers)
-
-        #Extra Debug - remove this in the future
-        logging.info("** list_bucket url=" + url)
 
         if r.status_code == 200:
             logging.info(
@@ -325,9 +307,6 @@ class Prism:
 
         r = requests.get(url, headers=headers)
 
-        #Extra Debug - remove this in the future
-        logging.info("**list_dataset url=" + url)
-
         if r.status_code == 200:
             logging.info(
                 "Successfully obtained information about your datasets")
@@ -358,9 +337,6 @@ class Prism:
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
         r = requests.get(url, headers=headers)
-
-        #Extra Debug - remove this in the future
-        logging.info("**describe_dataset url=" + url)
 
         if r.status_code == 200:
             logging.info(
