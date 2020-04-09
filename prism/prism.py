@@ -60,17 +60,24 @@ class Prism:
         The Refresh Token for your registered API client
     """
 
-    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token):
-        """Init the Prism class with required attributes."""
+    def __init__(self, base_url, tenant_name, client_id,
+                 client_secret, refresh_token, version="v2"):
+        """Init the Prism class with required attribues."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
-        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(base_url, tenant_name)
-        self.rest_endpoint = "{}/ccx/api/v1/{}".format(base_url, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/v1/{}".format(base_url, tenant_name)
-        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(base_url, tenant_name)
+        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(
+            base_url, tenant_name)
+        self.version=version
+        self.rest_endpoint = "{}/ccx/api/{}/{}".format(base_url, version, tenant_name)
+        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(
+            base_url, version, tenant_name
+        )
+        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(
+            base_url, tenant_name
+        )
         self.bearer_token = None
 
     def create_bearer_token(self):
@@ -137,7 +144,7 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_bucket(self, schema, dataset_id):
+    def create_bucket(self, schema, dataset_id, operation="Replace"):
         """Create a temporary bucket to upload files.
 
         Parameters
@@ -147,6 +154,10 @@ class Prism:
 
         dataset_id : str
             The ID of the dataset that this bucket is to be associated with.
+
+        operation : str
+            If not specified, defaults to "Replace" operation
+            Optional values - "Replace" or "Append"
 
         Returns
         -------
@@ -163,7 +174,7 @@ class Prism:
 
         data = {
             "name": "bucket_" + str(random.randint(100000, 999999)),
-            "operation": {"id": "Operation_Type=Replace"},
+            "operation": {"id": "Operation_Type=" + operation},
             "targetDataset": {"id": dataset_id},
             "schema": schema,
         }
@@ -297,3 +308,87 @@ class Prism:
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
+
+    def describe_dataset(self, dataset_id=None):
+        """Obtain details for for a given dataset/table
+
+        Parameters
+        ----------
+        dataset_id : str
+            The ID of the dataset to obtain datails about. If the default value
+            of None is specified, details regarding all datasets is returned.
+
+        Returns
+        -------
+        If the request is successful, a dictionary containing information about
+        the dataset is returned.
+
+        """
+        url = self.prism_endpoint + "/datasets"
+
+        if dataset_id is not None:
+            url = url + "/" + dataset_id + "/describe"
+
+        headers = {"Authorization": "Bearer " + self.bearer_token}
+
+        r = requests.get(url, headers=headers)
+
+        if r.status_code == 200:
+            logging.info(
+                "Successfully obtained information about your datasets")
+            return r.json()
+        else:
+            logging.warning("HTTP Error {}".format(r.status_code))
+
+    def convert_describe_schema_to_bucket_schema(self, describe_schema):
+        """Convert schema (derived from describe dataset/table) to bucket schema
+
+        Parameters
+        ----------
+        schema : dict
+            A dictionary containing the describe schema for your dataset.
+
+        Returns
+        -------
+        If the request is succesful, a dictionary containing the bucket schema is returned.
+        The results can then be passed to the create_bucket function
+
+        """
+
+        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object, but this is itself a
+        # list (with just one item) so needs the list index, in this case 0. 'fields' is found in the dict that is in ['data'][0]
+        fields = describe_schema['data'][0]['fields']
+
+        # Now trim our fields data to keep just what we need
+        for i in fields:
+            del i['id']
+            del i['displayName']
+            del i['fieldId']
+
+        # Get rid of the WPA_ fields...
+        fields[:] = [x for x in fields if not "WPA" in x['name']]
+
+        # The "header" for the load schema
+        bucket_schema = {
+            "parseOptions":{
+            "fieldsDelimitedBy":",",
+            "fieldsEnclosedBy":"\"",
+            "headerLinesToIgnore":1,
+            "charset":{
+                "id":"Encoding=UTF-8"
+                },
+            "type":{
+                "id":"Schema_File_Type=Delimited"
+                }
+            }
+        }
+
+        # The footer for the load schema
+        schemaVersion={
+            "id":"Schema_Version=1.0"
+            }
+
+        bucket_schema['fields']=fields
+        bucket_schema['schemaVersion']=schemaVersion
+
+        return bucket_schema
