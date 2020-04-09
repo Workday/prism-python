@@ -60,24 +60,18 @@ class Prism:
         The Refresh Token for your registered API client
     """
 
-    def __init__(self, base_url, tenant_name, client_id,
-                 client_secret, refresh_token, version="v2"):
+    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v2"):
         """Init the Prism class with required attribues."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
-        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(
-            base_url, tenant_name)
-        self.version=version
+        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(base_url, tenant_name)
+        self.version = version
         self.rest_endpoint = "{}/ccx/api/{}/{}".format(base_url, version, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(
-            base_url, version, tenant_name
-        )
-        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(
-            base_url, tenant_name
-        )
+        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(base_url, version, tenant_name)
+        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(base_url, tenant_name)
         self.bearer_token = None
 
     def create_bearer_token(self):
@@ -334,8 +328,7 @@ class Prism:
         r = requests.get(url, headers=headers)
 
         if r.status_code == 200:
-            logging.info(
-                "Successfully obtained information about your datasets")
+            logging.info("Successfully obtained information about your datasets")
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
@@ -355,40 +348,35 @@ class Prism:
 
         """
 
-        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object, but this is itself a
-        # list (with just one item) so needs the list index, in this case 0. 'fields' is found in the dict that is in ['data'][0]
-        fields = describe_schema['data'][0]['fields']
+        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object,
+        # but this is itself a list (with just one item) so needs the list index, in this case 0. 'fields' is found
+        # in the dict that is in ['data'][0]
+        fields = describe_schema["data"][0]["fields"]
 
         # Now trim our fields data to keep just what we need
         for i in fields:
-            del i['id']
-            del i['displayName']
-            del i['fieldId']
+            del i["id"]
+            del i["displayName"]
+            del i["fieldId"]
 
         # Get rid of the WPA_ fields...
-        fields[:] = [x for x in fields if not "WPA" in x['name']]
+        fields[:] = [x for x in fields if "WPA" not in x["name"]]
 
         # The "header" for the load schema
         bucket_schema = {
-            "parseOptions":{
-            "fieldsDelimitedBy":",",
-            "fieldsEnclosedBy":"\"",
-            "headerLinesToIgnore":1,
-            "charset":{
-                "id":"Encoding=UTF-8"
-                },
-            "type":{
-                "id":"Schema_File_Type=Delimited"
-                }
+            "parseOptions": {
+                "fieldsDelimitedBy": ",",
+                "fieldsEnclosedBy": '"',
+                "headerLinesToIgnore": 1,
+                "charset": {"id": "Encoding=UTF-8"},
+                "type": {"id": "Schema_File_Type=Delimited"},
             }
         }
 
         # The footer for the load schema
-        schemaVersion={
-            "id":"Schema_Version=1.0"
-            }
+        schemaVersion = {"id": "Schema_Version=1.0"}
 
-        bucket_schema['fields']=fields
-        bucket_schema['schemaVersion']=schemaVersion
+        bucket_schema["fields"] = fields
+        bucket_schema["schemaVersion"] = schemaVersion
 
         return bucket_schema
