@@ -348,8 +348,9 @@ class Prism:
 
         """
 
-        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object, but this is itself a
-        # list (with just one item) so needs the list index, in this case 0. 'fields' is found in the dict that is in ['data'][0]
+        # describe_schema is a python dict object and needs to be accessed as such, 'data' is the top level object,
+        # but this is itself a list (with just one item) so needs the list index, in this case 0. 'fields' is found
+        # in the dict that is in ['data'][0]
         fields = describe_schema["data"][0]["fields"]
 
         # Now trim our fields data to keep just what we need
@@ -359,7 +360,7 @@ class Prism:
             del i["fieldId"]
 
         # Get rid of the WPA_ fields...
-        fields[:] = [x for x in fields if not "WPA" in x["name"]]
+        fields[:] = [x for x in fields if "WPA" not in x["name"]]
 
         # The "header" for the load schema
         bucket_schema = {
