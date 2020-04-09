@@ -33,8 +33,6 @@ Prism class requires as parameters.
 In Workday, obtain the Workday REST API endpoint that the Prism class requires
 as a parameter.
 
-## Example 1 - Create a new Prism table with data
-=======
 3. For ease of use, set the following environment variables using the values obtained above:
 
 ```bash
@@ -45,7 +43,7 @@ $ export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
 $ export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
 ```
 
-## Example
+## Example 1 - Create a new Prism table with data
 
 ### Using the CLI
 
