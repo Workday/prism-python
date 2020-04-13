@@ -58,9 +58,12 @@ class Prism:
 
     refresh_token : str
         The Refresh Token for your registered API client
+
+    version : str
+        The version of the Prism API to use
     """
 
-    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v2"):
+    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v1"):
         """Init the Prism class with required attribues."""
         self.base_url = base_url
         self.tenant_name = tenant_name
