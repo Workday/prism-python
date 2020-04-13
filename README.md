@@ -70,7 +70,8 @@ p = prism.Prism(
     os.getenv("workday_tenant_name"),
     os.getenv("prism_client_id"), 
     os.getenv("prism_client_secret"),
-    os.getenv("prism_refresh_token")
+    os.getenv("prism_refresh_token"),
+    version="v1"
 )
 
 # create the bearer token
@@ -108,7 +109,8 @@ p = prism.Prism(
     os.getenv("workday_tenant_name"),
     os.getenv("prism_client_id"),
     os.getenv("prism_client_secret"),
-    os.getenv("prism_refresh_token")
+    os.getenv("prism_refresh_token"),
+    version="v2"
 )
 
 # create the bearer token
