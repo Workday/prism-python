@@ -36,11 +36,11 @@ as a parameter.
 3. For ease of use, set the following environment variables using the values obtained above:
 
 ```bash
-$ export workday_base_url=<INSERT WORKDAY BASE URL HERE>
-$ export workday_tenant_name=<INSERT WORKDAY TENANT NAME HERE>
-$ export prism_client_id=<INERT PRISM CLIENT ID HERE>
-$ export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
-$ export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
+export workday_base_url=<INSERT WORKDAY BASE URL HERE>
+export workday_tenant_name=<INSERT WORKDAY TENANT NAME HERE>
+export prism_client_id=<INERT PRISM CLIENT ID HERE>
+export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
+export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
 ```
 
 ## Example 1 - Create a new Prism table with data
@@ -49,13 +49,13 @@ $ export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
 
 ```bash
 # view the help page
-$ prism --help
+prism --help
 
 # list all datasets of type API
-$ prism list
+prism list
 
 # upload a gzip CSV file
-$ prism upload my_new_dataset /path/to/schema.json /path/to/file.csv.gz
+prism upload my_new_dataset /path/to/schema.json /path/to/file.csv.gz
 ```
 
 ### Using as a Python Package
