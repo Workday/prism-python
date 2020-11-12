@@ -107,7 +107,7 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_dataset(self, dataset_name):
+    def create_dataset(self, dataset_name, schema=None):
         """Create an empty dataset of type "API".
 
         Parameters
@@ -115,6 +115,9 @@ class Prism:
         dataset_name : str
             The dataset name. The name must be unique and conform to the name
             validation rules.
+
+        schema : list
+            A list of dictionaries containing the schema
 
         Returns
         -------
@@ -130,6 +133,9 @@ class Prism:
         }
 
         data = {"name": dataset_name}
+
+        if schema is not None:
+            data["fields"] = schema
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
