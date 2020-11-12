@@ -367,6 +367,8 @@ class Prism:
             del i["id"]
             del i["displayName"]
             del i["fieldId"]
+            del i["required"]
+            del i["externalId"]
 
         # Get rid of the WPA_ fields...
         fields[:] = [x for x in fields if "WPA" not in x["name"]]
