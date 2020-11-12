@@ -43,7 +43,7 @@ export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
 export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
 ```
 
-## Example 1 - Create a new Prism table with data
+## Example: Create a new dataset with Prism API Version 1
 
 ### Using the CLI
 
@@ -77,10 +77,10 @@ p = prism.Prism(
 # create the bearer token
 p.create_bearer_token()
 
-# create an empty API table
+# create an empty API dataset
 dataset = p.create_dataset("my_new_dataset")
 
-# read in your table schema
+# read in your dataset schema
 schema = prism.load_schema("/path/to/schema.json")
 
 # create a new bucket to hold your file
@@ -92,18 +92,18 @@ p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
 # complete the bucket and upload your file
 p.complete_bucket(bucket["id"])
 
-# check the status of the table you just created
+# check the status of the dataset you just created
 status = p.list_dataset(dataset["id"])
 print(status)
 ```
 
-## Example 2 - Assuming you already have a Prism table created, this shows you how to replace or append rows to it
+## Example: Create a new table with Prism API Version 2
 
 ```python
 import os
 import prism
 
-# initalize the prism class with your credentials
+# initialize the prism class with your credentials
 p = prism.Prism(
     os.getenv("workday_base_url"),
     os.getenv("workday_tenant_name"),
@@ -116,20 +116,20 @@ p = prism.Prism(
 # create the bearer token
 p.create_bearer_token()
 
-# This table_wid represents the Workday ID for a Workday Prism table
-table_wid = "6ea84700d0cf015f1b50316c3008b525"
+# read in your table schema
+schema = prism.load_schema("/path/to/schema.json")
 
-# Describe the Prism table i.e. get the schema related to the table
-my_schema = p.describe_dataset(table_wid)
+# create an empty API table with your schema
+table = p.create_dataset('my_new_table', schema=schema['fields'])
 
-# Convert the describe schema to bucket schema
-schema = p.convert_describe_schema_to_bucket_schema(my_schema)
+# get the details about the newly created table
+details = p.describe_dataset(table['id'])
 
-# create a new bucket to hold your file (by default this performs a "Replace" which replaces the data)
-bucket = p.create_bucket(schema, table_wid)
+# convert the details to a bucket schema
+bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
 
-# Add extra parameter "Append" if operation is to Append
-#bucket = p.create_bucket(schema, table_wid, "Append")
+# create a new bucket to hold your file
+bucket = p.create_bucket(bucket_schema, table['id'], operation="Replace")
 
 # add your file the bucket you just created
 p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
@@ -138,7 +138,53 @@ p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
 p.complete_bucket(bucket["id"])
 
 # check the status of the table you just created
-status = p.list_dataset(table_wid)
+status = p.list_dataset(table['id'])
+print(status)
+```
+
+## Example: Append data to an existing table with Prism API Version 2
+
+```python
+import os
+import prism
+
+# initialize the prism class with your credentials
+p = prism.Prism(
+    os.getenv("workday_base_url"),
+    os.getenv("workday_tenant_name"),
+    os.getenv("prism_client_id"),
+    os.getenv("prism_client_secret"),
+    os.getenv("prism_refresh_token"),
+    version="v2"
+)
+
+# create the bearer token
+p.create_bearer_token()
+
+# look through all of the existing tables to find the table you intend to append
+all_datasets = p.list_dataset()
+for table in all_datasets['data']:
+    if table['name'] == "my_new_table":
+        print(table)
+        break
+
+# get the details about the newly created table
+details = p.describe_dataset(table['id'])
+
+# convert the details to a bucket schema
+bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
+
+# create a new bucket to hold your file
+bucket = p.create_bucket(bucket_schema, table['id'], operation="Append")
+
+# add your file the bucket you just created
+p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
+
+# complete the bucket and upload your file
+p.complete_bucket(bucket["id"])
+
+# check the status of the table you just created
+status = p.list_dataset(table['id'])
 print(status)
 ```
 
