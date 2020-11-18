@@ -176,7 +176,7 @@ class Prism:
         }
 
         data = {
-            "name": "bucket_" + str(random.randint(100000, 999999)),
+            "name": "prism_python_wbucket_" + str(random.randint(1000000, 9999999)),
             "operation": {"id": "Operation_Type=" + operation},
             "targetDataset": {"id": dataset_id},
             "schema": schema,
