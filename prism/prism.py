@@ -306,11 +306,11 @@ class Prism:
         if table_name is not None:
             url = url + "name=" + table_name
 
-        params = {'limit': 100}
+        params = {"limit": 100}
 
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
-        r = requests.get(url,params=params,headers=headers)
+        r = requests.get(url, params=params, headers=headers)
 
         if r.status_code == 200:
             logging.info("Successfully obtained information about your tables")
@@ -340,7 +340,7 @@ class Prism:
 
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
-        r = requests.get(url,headers=headers)
+        r = requests.get(url, headers=headers)
 
         if r.status_code == 200:
             logging.info("Successfully obtained information about your datasets")
@@ -369,8 +369,8 @@ class Prism:
         fields = describe_schema["data"][0]["fields"]
 
         # Create useAsOperationKey for fields with default value of false
-        operation_key_false = {"useAsOperationKey" : False}
-        operation_key_true = {"useAsOperationKey" : True} 
+        operation_key_false = {"useAsOperationKey": False}
+        operation_key_true = {"useAsOperationKey": True}
 
         for i in fields:
             if i["externalId"] is True:
