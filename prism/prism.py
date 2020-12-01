@@ -160,11 +160,11 @@ class Prism:
 
         operation : str
            Required, defaults to "TruncateandInsert" operation
-           Additional Operations - “Insert”, “Update”, “Upsert”, “Delete” 
+           Additional Operations - “Insert”, “Update”, “Upsert”, “Delete”
            When you use Update/Upsert/Delete operation you must specify which field to use
-           as the matching key by setting the ‘useAsOperationKey’ attribute on that field as True. 
+           as the matching key by setting the ‘useAsOperationKey’ attribute on that field as True.
            Only fields marked as ExternalID or WPA_RowID or WPA_LoadId on Table schema can be used
-           as operation keys during loads into the table. 
+           as operation keys during loads into the table.
 
         Returns
         -------
