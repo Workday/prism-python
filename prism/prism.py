@@ -64,7 +64,7 @@ class Prism:
     """
 
     def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v2"):
-        """Init the Prism class with required attribues."""
+        """Init the Prism class with required attributes."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
@@ -82,7 +82,6 @@ class Prism:
 
         Parameters
         ----------
-        None
 
         Returns
         -------
@@ -112,7 +111,7 @@ class Prism:
 
         Parameters
         ----------
-        dataset_name : str
+        table_name : str
             The table name. The name must be unique and conform to the name
             validation rules.
 
@@ -291,9 +290,9 @@ class Prism:
 
         Parameters
         ----------
-        table_id : str
-            The ID of the table to obtain details about. If the default value
-            of None is specified, details regarding all tables is returned.
+        table_name : str
+            The name of the table to obtain details about. If the default value
+            of None is specified, details regarding first 100 tables is returned.
 
         Returns
         -------
@@ -324,7 +323,7 @@ class Prism:
         Parameters
         ----------
         table_id : str
-            The ID of the table to obtain datails about. If the default value
+            The ID of the table to obtain details about. If the default value
             of None is specified, details regarding all tables is returned.
 
         Returns
@@ -353,12 +352,12 @@ class Prism:
 
         Parameters
         ----------
-        schema : dict
+        describe_schema: dict
             A dictionary containing the describe schema for your dataset.
 
         Returns
         -------
-        If the request is succesful, a dictionary containing the bucket schema is returned.
+        If the request is successful, a dictionary containing the bucket schema is returned.
         The results can then be passed to the create_bucket function
 
         """
@@ -368,7 +367,7 @@ class Prism:
         # in the dict that is in ['data'][0]
         fields = describe_schema["data"][0]["fields"]
 
-        # Create useAsOperationKey for fields with default value of false
+        # Create and assign useAsOperationKey field with true/false values based on externalId value
         operation_key_false = {"useAsOperationKey": False}
         operation_key_true = {"useAsOperationKey": True}
 
@@ -401,9 +400,9 @@ class Prism:
         }
 
         # The footer for the load schema
-        schemaVersion = {"id": "Schema_Version=1.0"}
+        schema_version = {"id": "Schema_Version=1.0"}
 
         bucket_schema["fields"] = fields
-        bucket_schema["schemaVersion"] = schemaVersion
+        bucket_schema["schemaVersion"] = schema_version
 
         return bucket_schema

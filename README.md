@@ -83,12 +83,15 @@ p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
 # complete the bucket and upload your file
 p.complete_bucket(bucket["id"])
 
-# check the status of the table you just created
-status = p.list_table(table['id'])
-print(status)
+# check the status of the bucket you just completed
+status = p.list_bucket(bucket["id"])
+print(status.get('errorMessage'))
 ```
 
-## Example: Append data to an existing table with Prism API Version 2
+## Example: Manage data in an existing table with Prism API Version 2
+Table Operations Available - “TruncateandInsert”, “Insert”, “Update”, “Upsert”, “Delete”.
+
+To use the Update/Upsert/Delete operations you must specify an external id field within your table schema.
 
 ```python
 import os
@@ -129,9 +132,9 @@ p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
 # complete the bucket and upload your file
 p.complete_bucket(bucket["id"])
 
-# check the status of the table you just created
-status = p.list_table(table['id'])
-print(status)
+# check the status of the bucket you just completed
+status = p.list_bucket(bucket["id"])
+print(status.get('errorMessage'))
 ```
 
 ## Bugs
