@@ -30,7 +30,7 @@ def load_schema(filename):
     Returns
     -------
     schema : dict
-        A dictionary containing the schema for your dataset.
+        A dictionary containing the schema for your table.
 
     """
     with open(filename) as f:
@@ -63,8 +63,8 @@ class Prism:
         The version of the Prism API to use
     """
 
-    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v1"):
-        """Init the Prism class with required attribues."""
+    def __init__(self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v2"):
+        """Init the Prism class with required attributes."""
         self.base_url = base_url
         self.tenant_name = tenant_name
         self.client_id = client_id
@@ -82,7 +82,6 @@ class Prism:
 
         Parameters
         ----------
-        None
 
         Returns
         -------
@@ -107,13 +106,13 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_dataset(self, dataset_name, schema=None):
-        """Create an empty dataset of type "API".
+    def create_table(self, table_name, schema=None):
+        """Create an empty table of type "API".
 
         Parameters
         ----------
-        dataset_name : str
-            The dataset name. The name must be unique and conform to the name
+        table_name : str
+            The table name. The name must be unique and conform to the name
             validation rules.
 
         schema : list
@@ -122,7 +121,7 @@ class Prism:
         Returns
         -------
         If the request is successful, a dictionary containing information about
-        the new dataset is returned.
+        the new table is returned.
 
         """
         url = self.prism_endpoint + "/datasets"
@@ -132,7 +131,7 @@ class Prism:
             "Content-Type": "application/json",
         }
 
-        data = {"name": dataset_name}
+        data = {"name": table_name}
 
         if schema is not None:
             data["fields"] = schema
@@ -140,27 +139,31 @@ class Prism:
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
         if r.status_code == 201:
-            logging.info("Successfully created an empty API dataset")
+            logging.info("Successfully created an empty API table")
             return r.json()
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def create_bucket(self, schema, dataset_id, operation="Replace"):
+    def create_bucket(self, schema, table_id, operation="TruncateandInsert"):
         """Create a temporary bucket to upload files.
 
         Parameters
         ----------
         schema : dict
-            A dictionary containing the schema for your dataset.
+            A dictionary containing the schema for your table.
 
-        dataset_id : str
-            The ID of the dataset that this bucket is to be associated with.
+        table_id : str
+            The ID of the table that this bucket is to be associated with.
 
         operation : str
-            If not specified, defaults to "Replace" operation
-            Optional values - "Replace" or "Append"
+           Required, defaults to "TruncateandInsert" operation
+           Additional Operations - “Insert”, “Update”, “Upsert”, “Delete”
+           When you use Update/Upsert/Delete operation you must specify which field to use
+           as the matching key by setting the ‘useAsOperationKey’ attribute on that field as True.
+           Only fields marked as ExternalID or WPA_RowID or WPA_LoadId on Table schema can be used
+           as operation keys during loads into the table.
 
         Returns
         -------
@@ -178,7 +181,7 @@ class Prism:
         data = {
             "name": "prism_python_wbucket_" + str(random.randint(1000000, 9999999)),
             "operation": {"id": "Operation_Type=" + operation},
-            "targetDataset": {"id": dataset_id},
+            "targetDataset": {"id": table_id},
             "schema": schema,
         }
 
@@ -282,55 +285,57 @@ class Prism:
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def list_dataset(self, dataset_id=None):
-        """Obtain details for all datasets or a given dataset.
+    def list_table(self, table_name=None):
+        """Obtain details for all tables or a given table.
 
         Parameters
         ----------
-        dataset_id : str
-            The ID of the dataset to obtain details about. If the default value
-            of None is specified, details regarding all datasets is returned.
+        table_name : str
+            The name of the table to obtain details about. If the default value
+            of None is specified, details regarding first 100 tables is returned.
 
         Returns
         -------
         If the request is successful, a dictionary containing information about
-        the dataset is returned.
+        the table is returned.
 
         """
-        url = self.prism_endpoint + "/datasets"
+        url = self.prism_endpoint + "/datasets?"
 
-        if dataset_id is not None:
-            url = url + "/" + dataset_id
+        if table_name is not None:
+            url = url + "name=" + table_name
+
+        params = {"limit": 100}
 
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, params=params, headers=headers)
 
         if r.status_code == 200:
-            logging.info("Successfully obtained information about your datasets")
+            logging.info("Successfully obtained information about your tables")
             return r.json()
         else:
             logging.warning("HTTP Error {}".format(r.status_code))
 
-    def describe_dataset(self, dataset_id=None):
-        """Obtain details for for a given dataset/table
+    def describe_table(self, table_id=None):
+        """Obtain details for for a given table
 
         Parameters
         ----------
-        dataset_id : str
-            The ID of the dataset to obtain datails about. If the default value
-            of None is specified, details regarding all datasets is returned.
+        table_id : str
+            The ID of the table to obtain details about. If the default value
+            of None is specified, details regarding all tables is returned.
 
         Returns
         -------
         If the request is successful, a dictionary containing information about
-        the dataset is returned.
+        the table is returned.
 
         """
-        url = self.prism_endpoint + "/datasets"
+        url = self.prism_endpoint + "/datasets/"
 
-        if dataset_id is not None:
-            url = url + "/" + dataset_id + "/describe"
+        if table_id is not None:
+            url = url + table_id + "/describe"
 
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
@@ -343,16 +348,16 @@ class Prism:
             logging.warning("HTTP Error {}".format(r.status_code))
 
     def convert_describe_schema_to_bucket_schema(self, describe_schema):
-        """Convert schema (derived from describe dataset/table) to bucket schema
+        """Convert schema (derived from describe table) to bucket schema
 
         Parameters
         ----------
-        schema : dict
+        describe_schema: dict
             A dictionary containing the describe schema for your dataset.
 
         Returns
         -------
-        If the request is succesful, a dictionary containing the bucket schema is returned.
+        If the request is successful, a dictionary containing the bucket schema is returned.
         The results can then be passed to the create_bucket function
 
         """
@@ -361,6 +366,16 @@ class Prism:
         # but this is itself a list (with just one item) so needs the list index, in this case 0. 'fields' is found
         # in the dict that is in ['data'][0]
         fields = describe_schema["data"][0]["fields"]
+
+        # Create and assign useAsOperationKey field with true/false values based on externalId value
+        operation_key_false = {"useAsOperationKey": False}
+        operation_key_true = {"useAsOperationKey": True}
+
+        for i in fields:
+            if i["externalId"] is True:
+                i.update(operation_key_true)
+            else:
+                i.update(operation_key_false)
 
         # Now trim our fields data to keep just what we need
         for i in fields:
@@ -385,9 +400,9 @@ class Prism:
         }
 
         # The footer for the load schema
-        schemaVersion = {"id": "Schema_Version=1.0"}
+        schema_version = {"id": "Schema_Version=1.0"}
 
         bucket_schema["fields"] = fields
-        bucket_schema["schemaVersion"] = schemaVersion
+        bucket_schema["schemaVersion"] = schema_version
 
         return bucket_schema
