@@ -70,11 +70,11 @@ class Prism:
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
-        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(base_url, tenant_name)
+        self.token_endpoint = f"{base_url}/ccx/oauth2/{tenant_name}/token"
         self.version = version
-        self.rest_endpoint = "{}/ccx/api/{}/{}".format(base_url, version, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(base_url, version, tenant_name)
-        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(base_url, tenant_name)
+        self.rest_endpoint = f"{base_url}/ccx/api/{version}/{tenant_name}"
+        self.prism_endpoint = f"{base_url}/ccx/api/prismAnalytics/{version}/{tenant_name}"
+        self.upload_endpoint = f"{base_url}/wday/opa/tenant/{tenant_name}/service/wBuckets"
         self.bearer_token = None
 
     def create_bearer_token(self):
