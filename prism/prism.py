@@ -252,6 +252,8 @@ class Prism:
 
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
+        elif r.status_code == 400:
+            logging.warning(r.json()["errors"][0]["error"])
         else:
             logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
