@@ -5,19 +5,16 @@
 Python client library for interacting with Workday’s Prism API V2.
 
 ## Install
-You may install the latest version by cloning this repository from GitHub
-and using `pip` to install from the local directory:
-
-```bash
-git clone https://github.com/Workday/prism-python.git
-cd prism-python
-pip install .
-```
-
-It is also possible to install the latest version directly from GitHub with:
+You may install the latest version directly from GitHub with:
 
 ```bash
 pip install git+git://github.com/Workday/prism-python.git
+```
+
+It is also possible to install a specific tagged release with:
+
+```bash
+pip install git+git://github.com/Workday/prism-python.git@0.1.0
 ```
 
 ## Requirements

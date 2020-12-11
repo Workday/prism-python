@@ -70,11 +70,11 @@ class Prism:
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
-        self.token_endpoint = "{}/ccx/oauth2/{}/token".format(base_url, tenant_name)
+        self.token_endpoint = f"{base_url}/ccx/oauth2/{tenant_name}/token"
         self.version = version
-        self.rest_endpoint = "{}/ccx/api/{}/{}".format(base_url, version, tenant_name)
-        self.prism_endpoint = "{}/ccx/api/prismAnalytics/{}/{}".format(base_url, version, tenant_name)
-        self.upload_endpoint = "{}/wday/opa/tenant/{}/service/wBuckets".format(base_url, tenant_name)
+        self.rest_endpoint = f"{base_url}/ccx/api/{version}/{tenant_name}"
+        self.prism_endpoint = f"{base_url}/ccx/api/prismAnalytics/{version}/{tenant_name}"
+        self.upload_endpoint = f"{base_url}/wday/opa/tenant/{tenant_name}/service/wBuckets"
         self.bearer_token = None
 
     def create_bearer_token(self):
@@ -104,7 +104,7 @@ class Prism:
             logging.info("Successfully obtained bearer token")
             self.bearer_token = r.json()["access_token"]
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def create_table(self, table_name, schema=None):
         """Create an empty table of type "API".
@@ -144,7 +144,7 @@ class Prism:
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def create_bucket(self, schema, table_id, operation="TruncateandInsert"):
         """Create a temporary bucket to upload files.
@@ -193,7 +193,7 @@ class Prism:
         elif r.status_code == 400:
             logging.warning(r.json()["errors"][0]["error"])
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def upload_file_to_bucket(self, bucket_id, filename):
         """Upload a file to a given bucket.
@@ -224,7 +224,7 @@ class Prism:
         if r.status_code == 200:
             logging.info("Successfully uploaded file to the bucket")
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def complete_bucket(self, bucket_id):
         """Finalize the bucket once all files have been added.
@@ -252,8 +252,10 @@ class Prism:
 
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
+        elif r.status_code == 400:
+            logging.warning(r.json()["errors"][0]["error"])
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def list_bucket(self, bucket_id=None):
         """Obtain details for all buckets or a given bucket.
@@ -283,7 +285,7 @@ class Prism:
             logging.info("Successfully obtained information about your buckets")
             return r.json()
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def list_table(self, table_name=None):
         """Obtain details for all tables or a given table.
@@ -315,7 +317,7 @@ class Prism:
             logging.info("Successfully obtained information about your tables")
             return r.json()
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def describe_table(self, table_id=None):
         """Obtain details for for a given table
@@ -345,7 +347,7 @@ class Prism:
             logging.info("Successfully obtained information about your datasets")
             return r.json()
         else:
-            logging.warning("HTTP Error {}".format(r.status_code))
+            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
     def convert_describe_schema_to_bucket_schema(self, describe_schema):
         """Convert schema (derived from describe table) to bucket schema
