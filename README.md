@@ -14,7 +14,7 @@ pip install git+git://github.com/Workday/prism-python.git
 It is also possible to install a specific tagged release with:
 
 ```bash
-pip install git+git://github.com/Workday/prism-python.git@0.1.0
+pip install git+git://github.com/Workday/prism-python.git@0.2.0
 ```
 
 ## Requirements
