@@ -71,6 +71,34 @@ def list(ctx, name):
     help="The table name. The name must be unique and conform to the name validation rules",
 )
 @click.option("--schema_path", type=click.Path(), required=True, help="The path to your schema file")
+@click.pass_context
+def create(ctx, table_name, schema_path):
+    """Create a new Prism table"""
+
+    # get the initialized prism class
+    p = ctx.obj["p"]
+
+    # read in your table schema
+    schema = prism.load_schema(schema_path)
+
+    # clean up the table name
+    table_name = table_name.replace(" ", "_")
+
+    # create an empty API table
+    table = p.create_table(table_name, schema=schema["fields"])
+
+    # print message
+    click.echo(json.dumps(table, indent=2, sort_keys=True))
+
+
+@main.command()
+@click.option(
+    "--table_name",
+    type=str,
+    required=True,
+    help="The table name. The name must be unique and conform to the name validation rules",
+)
+@click.option("--schema_path", type=click.Path(), required=True, help="The path to your schema file")
 @click.option("--data_path", type=click.Path(), required=True, help="The path to your gzip compressed data file")
 @click.pass_context
 def upload(ctx, table_name, schema_path, data_path):
