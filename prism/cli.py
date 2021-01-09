@@ -92,44 +92,40 @@ def create(ctx, table_name, schema_path):
 
 
 @main.command()
-@click.option(
-    "--table_name",
-    type=str,
-    required=True,
-    help="The table name. The name must be unique and conform to the name validation rules",
-)
-@click.option("--schema_path", type=click.Path(), required=True, help="The path to your schema file")
+@click.option("--table_id", type=str, required=True, help="The Table ID to upload your file to")
 @click.option("--data_path", type=click.Path(), required=True, help="The path to your gzip compressed data file")
+@click.option(
+    "--operation",
+    type=click.Choice(["TruncateandInsert", "Insert", "Update", "Upsert", "Delete"]),
+    default="TruncateandInsert",
+    help="The Table load operation",
+)
 @click.pass_context
-def upload(ctx, table_name, schema_path, data_path):
+def upload(ctx, table_id, data_path, operation):
     """Upload a gzip CSV file"""
 
     # get the initialized prism class
     p = ctx.obj["p"]
 
-    # clean up the table name
-    table_name = table_name.replace(" ", "_")
+    # get the details about the newly created table
+    details = p.describe_table(table_id)
 
-    # create an empty API table
-    table = p.create_table(table_name)
-
-    # read in your table schema
-    schema = prism.load_schema(schema_path)
+    # convert the details to a bucket schema
+    bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
 
     # create a new bucket to hold your file
-    bucket = p.create_bucket(schema, table["id"])
+    bucket = p.create_bucket(bucket_schema, table_id, operation=operation)
 
-    # add your file the bucket you just created
+    # add your file to the bucket you just created
     p.upload_file_to_bucket(bucket["id"], data_path)
 
     # complete the bucket and upload your file
     p.complete_bucket(bucket["id"])
 
     # check the status of the table you just created
-    status = p.list_table(table["id"])
+    status = p.list_table(table_id)
 
     # print message
-    click.echo("{} has successfully uploaded".format(table_name))
     click.echo(json.dumps(status["data"], indent=2, sort_keys=True))
 
 
