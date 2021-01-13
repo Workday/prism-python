@@ -64,16 +64,14 @@ def list(ctx, name):
 
 
 @main.command()
-@click.option(
-    "--table_name",
-    type=str,
-    required=True,
-    help="The table name. The name must be unique and conform to the name validation rules",
-)
-@click.option("--schema_path", type=click.Path(), required=True, help="The path to your schema file")
+@click.argument("table_name", type=str)
+@click.argument("schema_path", type=click.Path())
 @click.pass_context
 def create(ctx, table_name, schema_path):
-    """Create a new Prism table"""
+    """Create a new Prism table TABLE_NAME with schema from SCHEMA_PATH
+
+    Example: prism create my_table /home/data/schema.json
+    """
 
     # get the initialized prism class
     p = ctx.obj["p"]
@@ -92,8 +90,8 @@ def create(ctx, table_name, schema_path):
 
 
 @main.command()
-@click.option("--table_id", type=str, required=True, help="The Table ID to upload your file to")
-@click.option("--data_path", type=click.Path(), required=True, help="The path to your gzip compressed data file")
+@click.argument("gzip_file", type=click.Path())
+@click.argument("table_id", type=str)
 @click.option(
     "--operation",
     type=click.Choice(["TruncateandInsert", "Insert", "Update", "Upsert", "Delete"]),
@@ -101,8 +99,11 @@ def create(ctx, table_name, schema_path):
     help="The Table load operation",
 )
 @click.pass_context
-def upload(ctx, table_id, data_path, operation):
-    """Upload a gzip CSV file"""
+def upload(ctx, gzip_file, table_id, operation):
+    """Upload GZIP_FILE to TABLE_ID
+
+    Example: prism upload /home/data/file.csv.gz bbab30e3018b01a723524ce18010811b
+    """
 
     # get the initialized prism class
     p = ctx.obj["p"]
@@ -117,7 +118,7 @@ def upload(ctx, table_id, data_path, operation):
     bucket = p.create_bucket(bucket_schema, table_id, operation=operation)
 
     # add your file to the bucket you just created
-    p.upload_file_to_bucket(bucket["id"], data_path)
+    p.upload_file_to_bucket(bucket["id"], gzip_file)
 
     # complete the bucket and upload your file
     p.complete_bucket(bucket["id"])
