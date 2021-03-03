@@ -106,7 +106,7 @@ class Prism:
         else:
             logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
-    def create_table(self, table_name, schema=None):
+    def create_table(self, table_name, schema):
         """Create an empty table of type "API".
 
         Parameters
@@ -131,10 +131,7 @@ class Prism:
             "Content-Type": "application/json",
         }
 
-        data = {"name": table_name}
-
-        if schema is not None:
-            data["fields"] = schema
+        data = {"name": table_name, "fields": schema}
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
