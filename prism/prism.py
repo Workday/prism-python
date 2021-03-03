@@ -408,3 +408,30 @@ class Prism:
         bucket_schema["schemaVersion"] = schema_version
 
         return bucket_schema
+
+
+def create_table(p, table_name, schema):
+    """Create a new Prism table.
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    table_name : str
+        The name of the table to obtain details about. If the default value
+        of None is specified, details regarding first 100 tables is returned.
+
+    schema : list
+        A list of dictionaries containing the schema
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    p.create_bearer_token()
+    table = p.create_table(table_name, schema=schema)
+
+    return table

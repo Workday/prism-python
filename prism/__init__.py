@@ -1,8 +1,8 @@
-from prism.prism import Prism, load_schema
+from prism.prism import Prism, load_schema, create_table
 
 from ._version import get_versions
 
 __version__ = get_versions()["version"]
 del get_versions
 
-__all__ = ["Prism", "load_schema"]
+__all__ = ["load_schema", "Prism", "create_table"]
