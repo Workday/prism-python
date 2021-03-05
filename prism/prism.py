@@ -106,7 +106,7 @@ class Prism:
         else:
             logging.warning(f"HTTP status code {r.status_code}: {r.content}")
 
-    def create_table(self, table_name, schema=None):
+    def create_table(self, table_name, schema):
         """Create an empty table of type "API".
 
         Parameters
@@ -131,10 +131,7 @@ class Prism:
             "Content-Type": "application/json",
         }
 
-        data = {"name": table_name}
-
-        if schema is not None:
-            data["fields"] = schema
+        data = {"name": table_name, "fields": schema}
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
@@ -408,3 +405,62 @@ class Prism:
         bucket_schema["schemaVersion"] = schema_version
 
         return bucket_schema
+
+
+def create_table(p, table_name, schema):
+    """Create a new Prism table.
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    table_name : str
+        The name of the table to obtain details about. If the default value
+        of None is specified, details regarding first 100 tables is returned.
+
+    schema : list
+        A list of dictionaries containing the schema
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    p.create_bearer_token()
+    table = p.create_table(table_name, schema=schema)
+
+    return table
+
+
+def upload_file(p, filename, table_id, operation="TruncateandInsert"):
+    """Create a new Prism table.
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    filename : str
+        The path to you GZIP compressed file to upload.
+
+    table_id : str
+        The ID of the Prism table to upload your file to.
+
+    operation : str (default = TruncateandInsert)
+        The table load operation.
+        Possible options include TruncateandInsert, Insert, Update, Upsert, Delete.
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    p.create_bearer_token()
+    details = p.describe_table(table_id)
+    bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
+    bucket = p.create_bucket(bucket_schema, table_id, operation=operation)
+    p.upload_file_to_bucket(bucket["id"], filename)
+    p.complete_bucket(bucket["id"])

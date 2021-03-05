@@ -83,7 +83,7 @@ def create(ctx, table_name, schema_path):
     table_name = table_name.replace(" ", "_")
 
     # create an empty API table
-    table = p.create_table(table_name, schema=schema["fields"])
+    table = prism.create_table(p, table_name, schema["fields"])
 
     # print message
     click.echo(json.dumps(table, indent=2, sort_keys=True))
@@ -108,20 +108,8 @@ def upload(ctx, gzip_file, table_id, operation):
     # get the initialized prism class
     p = ctx.obj["p"]
 
-    # get the details about the newly created table
-    details = p.describe_table(table_id)
-
-    # convert the details to a bucket schema
-    bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
-
-    # create a new bucket to hold your file
-    bucket = p.create_bucket(bucket_schema, table_id, operation=operation)
-
-    # add your file to the bucket you just created
-    p.upload_file_to_bucket(bucket["id"], gzip_file)
-
-    # complete the bucket and upload your file
-    p.complete_bucket(bucket["id"])
+    # upload file to the table
+    prism.upload(p, gzip_file, table_id, operation)
 
     # check the status of the table you just created
     status = p.list_table(table_id)
