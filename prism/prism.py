@@ -432,3 +432,35 @@ def create_table(p, table_name, schema):
     table = p.create_table(table_name, schema=schema)
 
     return table
+
+
+def upload_file(p, filename, table_id, operation="TruncateandInsert"):
+    """Create a new Prism table.
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    filename : str
+        The path to you GZIP compressed file to upload.
+
+    table_id : str
+        The ID of the Prism table to upload your file to.
+
+    operation : str (default = TruncateandInsert)
+        The table load operation.
+        Possible options include TruncateandInsert, Insert, Update, Upsert, Delete.
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    p.create_bearer_token()
+    details = p.describe_table(table_id)
+    bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
+    bucket = p.create_bucket(bucket_schema, table_id, operation=operation)
+    p.upload_file_to_bucket(bucket["id"], filename)
+    p.complete_bucket(bucket["id"])
