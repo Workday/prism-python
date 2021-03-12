@@ -57,9 +57,7 @@ for wid in responses.keys():
 logging.info("Survey responses cleaned and normalized")
 
 # load cleaned comments into a dictionary
-id2word = gensim.corpora.Dictionary(
-    [responses[wid]["clean"] for wid in responses.keys()]
-)
+id2word = gensim.corpora.Dictionary([responses[wid]["clean"] for wid in responses.keys()])
 logging.info("Cleaned responses converted into a Gensim dictionary")
 
 # convert the cleaned documents into a bag-of-words
@@ -68,28 +66,16 @@ logging.info("Gensim dictionary converted into a corpus")
 
 # fit LDA model to corpus
 model = gensim.models.ldamodel.LdaModel(
-    corpus=corpus,
-    num_topics=3,
-    id2word=id2word,
-    random_state=42,
-    chunksize=200,
-    iterations=41,
-    passes=16,
+    corpus=corpus, num_topics=3, id2word=id2word, random_state=42, chunksize=200, iterations=41, passes=16,
 )
 logging.info("LDA topic model fit to corpus")
 
 # predict topic for each comment
 predictions = []
-for wid, text, vec in zip(
-    responses.keys(), [responses[wid]["answer"] for wid in responses.keys()], corpus
-):
+for wid, text, vec in zip(responses.keys(), [responses[wid]["answer"] for wid in responses.keys()], corpus):
     pred = model[vec]
     stats = {f"Topic {line[0]+1}": line[1] for line in pred}
-    row = {
-        "wid": wid,
-        "topic": max(stats, key=stats.get),
-        "topic_score": round(stats[max(stats, key=stats.get)], 4)
-    }
+    row = {"wid": wid, "topic": max(stats, key=stats.get), "topic_score": round(stats[max(stats, key=stats.get)], 4)}
     predictions.append(row)
 logging.info("Topics predicted for survey resposnes")
 
