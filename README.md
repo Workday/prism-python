@@ -63,6 +63,9 @@ schema = prism.load_schema("/path/to/schema.json")
 
 # create an empty API table with your schema
 table = prism.create_table('my_new_table', schema=schema['fields'])
+
+# print details about new table
+print(table)
 ```
 
 ### Manage data in an existing table with Prism API Version 2
@@ -89,10 +92,10 @@ prism --help
 prism list
 
 # create a new Prism API table
-prism create my_table /home/data/schema.json
+prism create my_new_table /path/to/schema.json
 
 # upload data to a Prism API table
-prism upload /home/data/file.csv.gz bbab30e3018b01a723524ce18010811b
+prism upload /path/to/file.csv.gz bbab30e3018b01a723524ce18010811b
 ```
 
 ## Bugs
