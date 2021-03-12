@@ -1,0 +1,41 @@
+{
+    "fields": [
+        {
+            "ordinal": 1,
+            "name": "worker_wid",
+            "type": {
+                "id": "Schema_Field_Type=Text"
+            }
+        },
+        {
+            "ordinal": 2,
+            "name": "topic",
+            "type": {
+                "id": "Schema_Field_Type=Text"
+            }
+        },
+        {
+            "ordinal": 3,
+            "name": "topic_score",
+            "precision": 38,
+            "scale": 4,
+            "type": {
+                "id": "Schema_Field_Type=Numeric"
+            }
+        }
+    ],
+    "parseOptions": {
+        "charset": {
+            "id": "Encoding=UTF-8"
+        },
+        "fieldsDelimitedBy": ",",
+        "fieldsEnclosedBy": "\"",
+        "headerLinesToIgnore": 1,
+        "type": {
+            "id": "Schema_File_Type=Delimited"
+        }
+    },
+    "schemaVersion": {
+        "id": "Schema_Version=1.0"
+    }
+}
