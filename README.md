@@ -2,7 +2,7 @@
 
 # Prism-Python
 
-Python client library for interacting with Workday’s Prism API V2.
+Python client library and command line interface (CLI) for interacting with Workday’s Prism API V2.
 
 ## Install
 You may install the latest version directly from GitHub with:
@@ -40,7 +40,9 @@ export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
 export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
 ```
 
-## Example: Create a new table with Prism API Version 2
+## Python Example
+
+### Create a new table with Prism API Version 2
 
 ```python
 import os
@@ -55,83 +57,42 @@ p = prism.Prism(
     os.getenv("prism_refresh_token"),
     version="v2"
 )
-
-# create the bearer token
-p.create_bearer_token()
 
 # read in your table schema
 schema = prism.load_schema("/path/to/schema.json")
 
 # create an empty API table with your schema
-table = p.create_table('my_new_table', schema=schema['fields'])
-
-# get the details about the newly created table
-details = p.describe_table(table['id'])
-
-# convert the details to a bucket schema
-bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
-
-# create a new bucket to hold your file
-bucket = p.create_bucket(bucket_schema, table['id'], operation="TruncateandInsert")
-
-# add your file the bucket you just created
-p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
-
-# complete the bucket and upload your file
-p.complete_bucket(bucket["id"])
-
-# check the status of the bucket you just completed
-status = p.list_bucket(bucket["id"])
-print(status.get('errorMessage'))
+table = prism.create_table('my_new_table', schema=schema['fields'])
 ```
 
-## Example: Manage data in an existing table with Prism API Version 2
+### Manage data in an existing table with Prism API Version 2
 Table Operations Available - “TruncateandInsert”, “Insert”, “Update”, “Upsert”, “Delete”.
 
 To use the Update/Upsert/Delete operations you must specify an external id field within your table schema.
 
 ```python
-import os
-import prism
+# upload GZIP CSV file to your table
+prism.upload_file(p, "/path/to/file.csv.gz", table["id"], operation="TruncateandInsert")
+```
 
-# initialize the prism class with your credentials
-p = prism.Prism(
-    os.getenv("workday_base_url"),
-    os.getenv("workday_tenant_name"),
-    os.getenv("prism_client_id"),
-    os.getenv("prism_client_secret"),
-    os.getenv("prism_refresh_token"),
-    version="v2"
-)
+## CLI Example
 
-# create the bearer token
-p.create_bearer_token()
+The command line interface (CLI) provides another way to interact with the Prism API.
+The CLI expects your credentials to be stored as environment variables, but they can
+also be passed into the CLI manaully through the use of optional arguments.
 
-# look through all of the existing tables to find the table you intend to append
-all_tables = p.list_table()
-for table in all_tables['data']:
-    if table['name'] == "my_new_table":
-        print(table)
-        break
+```
+# get help with the CLI
+prism --help
 
-# get the details about the newly created table
-details = p.describe_table(table['id'])
+# list the Prism API tables that you have access to
+prism list
 
-# convert the details to a bucket schema
-bucket_schema = p.convert_describe_schema_to_bucket_schema(details)
+# create a new Prism API table
+prism create my_table /home/data/schema.json
 
-# create a new bucket to hold your file
-bucket = p.create_bucket(bucket_schema, table['id'], operation="Insert")
-
-# add your file to the bucket you just created
-p.upload_file_to_bucket(bucket["id"], "/path/to/file.csv.gz")
-
-# complete the bucket and upload your file
-p.complete_bucket(bucket["id"])
-
-# check the status of the bucket you just completed
-status = p.list_bucket(bucket["id"])
-print(status.get('errorMessage'))
+# upload data to a Prism API table
+prism upload /home/data/file.csv.gz bbab30e3018b01a723524ce18010811b
 ```
 
 ## Bugs
