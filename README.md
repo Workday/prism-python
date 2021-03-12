@@ -2,7 +2,8 @@
 
 # Prism-Python
 
-Python client library and command line interface (CLI) for interacting with Workday’s Prism API V2.
+Python client library and command line interface (CLI) for interacting with
+Workday’s Prism API V2.
 
 ## Install
 You may install the latest version directly from GitHub with:
@@ -62,16 +63,18 @@ p = prism.Prism(
 schema = prism.load_schema("/path/to/schema.json")
 
 # create an empty API table with your schema
-table = prism.create_table('my_new_table', schema=schema['fields'])
+table = prism.create_table("my_new_table", schema=schema["fields"])
 
 # print details about new table
 print(table)
 ```
 
 ### Manage data in an existing table with Prism API Version 2
-Table Operations Available - “TruncateandInsert”, “Insert”, “Update”, “Upsert”, “Delete”.
+Table Operations Available: `TruncateandInsert`, `Insert`, `Update`, `Upsert`,
+`Delete`.
 
-To use the Update/Upsert/Delete operations you must specify an external id field within your table schema.
+To use the `Update`, `Upsert`, or `Delete` operations, you must specify an
+external id field within your table schema.
 
 ```python
 # upload GZIP CSV file to your table
@@ -82,9 +85,9 @@ prism.upload_file(p, "/path/to/file.csv.gz", table["id"], operation="Truncateand
 
 The command line interface (CLI) provides another way to interact with the Prism API.
 The CLI expects your credentials to be stored as environment variables, but they can
-also be passed into the CLI manaully through the use of optional arguments.
+also be passed into the CLI manually through the use of optional arguments.
 
-```
+```bash
 # get help with the CLI
 prism --help
 
