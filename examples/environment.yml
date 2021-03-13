@@ -1,0 +1,13 @@
+name: wday-dev
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - nltk=3.4.4
+  - spacy=3.0.3
+  - spacy-model-en_core_web_sm=3.0.0
+  - gensim
+  - pip
+  - pip:
+    - git+git://github.com/Workday/prism-python.git@0.2.2
