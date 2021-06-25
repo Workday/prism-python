@@ -109,7 +109,7 @@ def upload(ctx, gzip_file, table_id, operation):
     p = ctx.obj["p"]
 
     # upload file to the table
-    prism.upload(p, gzip_file, table_id, operation)
+    prism.upload_file(p, gzip_file, table_id, operation)
 
     # check the status of the table you just created
     status = p.list_table(table_id)
