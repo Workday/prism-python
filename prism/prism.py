@@ -99,6 +99,7 @@ class Prism:
         }
 
         r = requests.post(self.token_endpoint, headers=headers, data=data)
+        r.raise_for_status()
 
         if r.status_code == 200:
             logging.info("Successfully obtained bearer token")
@@ -134,6 +135,7 @@ class Prism:
         data = {"name": table_name, "fields": schema}
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
+        r.raise_for_status()
 
         if r.status_code == 201:
             logging.info("Successfully created an empty API table")
@@ -183,6 +185,7 @@ class Prism:
         }
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
+        r.raise_for_status()
 
         if r.status_code == 201:
             logging.info("Successfully created a new wBucket")
@@ -217,6 +220,7 @@ class Prism:
         files = {"file": open(filename, "rb")}
 
         r = requests.post(url, headers=headers, files=files)
+        r.raise_for_status()
 
         if r.status_code == 200:
             logging.info("Successfully uploaded file to the bucket")
@@ -246,6 +250,7 @@ class Prism:
         data = {}
 
         r = requests.post(url, headers=headers, data=json.dumps(data))
+        r.raise_for_status()
 
         if r.status_code == 201:
             logging.info("Successfully completed the bucket")
@@ -277,6 +282,7 @@ class Prism:
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
         r = requests.get(url, headers=headers)
+        r.raise_for_status()
 
         if r.status_code == 200:
             logging.info("Successfully obtained information about your buckets")
@@ -309,6 +315,7 @@ class Prism:
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
         r = requests.get(url, params=params, headers=headers)
+        r.raise_for_status()
 
         if r.status_code == 200:
             logging.info("Successfully obtained information about your tables")
@@ -339,6 +346,7 @@ class Prism:
         headers = {"Authorization": "Bearer " + self.bearer_token}
 
         r = requests.get(url, headers=headers)
+        r.raise_for_status()
 
         if r.status_code == 200:
             logging.info("Successfully obtained information about your datasets")
