@@ -9,13 +9,13 @@ Workday’s Prism API V2.
 You may install the latest version directly from GitHub with:
 
 ```bash
-pip install git+git://github.com/Workday/prism-python.git
+pip install git+https://github.com/Workday/prism-python.git
 ```
 
 It is also possible to install a specific tagged release with:
 
 ```bash
-pip install git+git://github.com/Workday/prism-python.git@0.2.0
+pip install git+https://github.com/Workday/prism-python.git@0.2.0
 ```
 
 ## Requirements
