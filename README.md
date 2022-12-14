@@ -63,7 +63,7 @@ p = prism.Prism(
 schema = prism.load_schema("/path/to/schema.json")
 
 # create an empty API table with your schema
-table = prism.create_table("my_new_table", schema=schema["fields"])
+table = prism.create_table(p, "my_new_table", schema=schema["fields"])
 
 # print details about new table
 print(table)
