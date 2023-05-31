@@ -24,7 +24,7 @@ jobs:
       run: python setup.py sdist
     - name: Format with Black
       run: |
-        pip install black==19.10b0
+        pip install black
         black . --check --verbose --line-length=120
     - name: Lint with flake8
       run: |
