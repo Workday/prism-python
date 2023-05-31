@@ -66,7 +66,13 @@ logging.info("Gensim dictionary converted into a corpus")
 
 # fit LDA model to corpus
 model = gensim.models.ldamodel.LdaModel(
-    corpus=corpus, num_topics=3, id2word=id2word, random_state=42, chunksize=200, iterations=41, passes=16,
+    corpus=corpus,
+    num_topics=3,
+    id2word=id2word,
+    random_state=42,
+    chunksize=200,
+    iterations=41,
+    passes=16,
 )
 logging.info("LDA topic model fit to corpus")
 

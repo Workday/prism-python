@@ -1,2 +1,2 @@
-click>=6,<8
+click>=6
 requests>=2.20.0,<3
