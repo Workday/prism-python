@@ -349,7 +349,7 @@ class Prism:
         r.raise_for_status()
 
         if r.status_code == 200:
-            logging.info("Successfully obtained information about your datasets")
+            logging.info("Successfully obtained information about your tables")
             return r.json()
         else:
             logging.warning(f"HTTP status code {r.status_code}: {r.content}")
