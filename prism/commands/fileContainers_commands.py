@@ -1,5 +1,5 @@
 import click
-from commands import util as u
+from . import util as u
 
 
 @click.command("create", help="Use this method to create a new fileContainers.")
@@ -33,7 +33,7 @@ def filecontainers_list(ctx, filecontainerid):
 def filecontainers_load(ctx, filecontainerid, file):
     p = ctx.obj["p"]
 
-    fid = u.fileContainers_load_impl(p, filecontainerid, file)
+    fid = u.fileContainers_load(p, filecontainerid, file)
 
     if fid is None:
         print("Error loading fileContainer.")

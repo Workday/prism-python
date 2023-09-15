@@ -95,12 +95,10 @@ def param_fixup(value, config, config_name, option):
     help="The name of a configuration with parameters for connections and logging.")
 @click.pass_context
 def cli(ctx,
-        base_url,
-        tenant_name,
+        base_url, tenant_name,
         username, password,
         client_id, client_secret, refresh_token,
-        log_level,
-        log_file,
+        log_level, log_file,
         config_file, config_name):
     # Attempt to locate a configuration file - this is not required and is only
     # used if the configuration values are not passed on the command line or in
@@ -164,7 +162,7 @@ def config_file(ctx, file):
     """Configure command"""
 
 
-@cli.group("tables", help="Commands to list, create, and update Prism tables.")
+@cli.group("tables", help="Commands to list, create, load, and update Prism tables.")
 def tables():
     """Tables Command"""
 
@@ -173,6 +171,7 @@ tables.add_command(tables_commands.tables_list)
 tables.add_command(tables_commands.tables_create)
 tables.add_command(tables_commands.tables_update)
 tables.add_command(tables_commands.tables_upload)
+tables.add_command(tables_commands.tables_truncate)
 
 
 @cli.group("buckets", help="Bucket operations to list, create and load buckets.")
@@ -182,9 +181,10 @@ def buckets():
 
 buckets.add_command(buckets_commands.buckets_list)
 buckets.add_command(buckets_commands.buckets_create)
-buckets.add_command(buckets_commands.buckets_generate)
 buckets.add_command(buckets_commands.buckets_complete)
+buckets.add_command(buckets_commands.buckets_status)
 buckets.add_command(buckets_commands.buckets_upload)
+buckets.add_command(buckets_commands.buckets_name)
 
 
 @cli.group("dataChanges", help="Data Change Tasks (dataChanges) operations to list, load, and activate.")
@@ -194,7 +194,7 @@ def dataChanges():
 
 dataChanges.add_command(dataChanges_commands.dataChanges_list)
 dataChanges.add_command(dataChanges_commands.dataChanges_validate)
-dataChanges.add_command(dataChanges_commands.dataChanges_execute)
+dataChanges.add_command(dataChanges_commands.dataChanges_run)
 
 
 @cli.group("fileContainers", help="File containers (fileContainers) operations to create, load, and list.")
@@ -207,7 +207,7 @@ fileContainers.add_command(fileContainers_commands.filecontainers_list)
 fileContainers.add_command(fileContainers_commands.filecontainers_load)
 
 
-@cli.group("wql", help="dataSources operations to list and query WQL sources.")
+@cli.group("wql", help="Operations to list (dataSources) and query WQL sources (data).")
 def wql():
     """dataChanges.py Command"""
 
@@ -216,7 +216,7 @@ wql.add_command(wql_commands.dataSources)
 wql.add_command(wql_commands.data)
 
 
-@cli.group("raas", help="Run report!")
+@cli.group("raas", help="Run custom or Workday delivered report.")
 def raas():
     """dataChanges.py Command"""
 

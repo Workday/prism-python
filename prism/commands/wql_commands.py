@@ -1,7 +1,6 @@
 import click
 import json
-import sys
-
+import pandas as pd
 
 @click.command("dataSources",
                help="View the buckets permitted by the security profile of the current user.")
@@ -52,11 +51,8 @@ def data(ctx, limit, offset, file_, csv_, query):
 
     if rows["total"] != 0:
         if csv_:
-            headers = rows["data"][0].keys()
-
-            writer = csv.DictWriter(sys.stdout, fieldnames=headers)
-            writer.writeheader()
-            writer.writerows(rows["data"])
+            df = pd.json_normalize(rows["data"])
+            print(df.to_csv(index=False))
         else:
-            print(json.dumps(data, indent=2))
+            print(json.dumps(rows, indent=2))
 
