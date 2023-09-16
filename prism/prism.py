@@ -89,7 +89,7 @@ class Prism:
             set_level = getattr(logging, log_level)
 
         logger.setLevel(set_level)   # Convert the string to the proper log level
-        logger.debug("set log level: {set_level}")
+        logger.debug(f"set log level: {set_level}")
 
     def buckets_gen_name(self):
         return "cli_" + uuid.uuid4().hex

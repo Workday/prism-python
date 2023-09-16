@@ -271,7 +271,7 @@ def compress_files(files):
 
             target_files.append(target_file)
         elif f.lower().endswith(".gz"):
-            target_files.append(target_file)
+            target_files.append(f)
         else:
             print(f"File {f} is not a .gz or .csv file - skipping.")
 
