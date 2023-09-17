@@ -53,7 +53,7 @@ def dataChanges_list(ctx, name, wid, activity_wid, limit, offset, type_, format_
         df = pd.json_normalize(data_changes["data"])
         print(df.to_csv(index=False))
     else:
-        print(json.dumps(data_changes["data"], index=2))
+        print(json.dumps(data_changes["data"], indent=2))
 
 
 @click.command("validate", help="Validate the data change specified by name or ID.")
