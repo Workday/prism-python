@@ -114,4 +114,39 @@ def dataChanges_run(ctx, name, filecontainerid):
         sys.exit(1)
     else:
         activity_id = p.dataChanges_activities_post(dct_id, filecontainerid)
-        print(activity_id)
+
+        if activity_id is None:
+            sys.exit(1)
+        else:
+            print(activity_id)
+
+
+@click.command("activities")
+@click.argument("name", required=True)
+@click.argument("activity_id", required=True)
+@click.pass_context
+def dataChanges_activities(ctx, name, activity_id):
+    """
+    This resource executes a data change.
+
+    [NAME]  Data Change Task name.
+    [FILECONTAINERID] File container with files to load.
+    """
+
+    p = ctx.obj["p"]
+
+    # See if we have any matching data change task.
+    data_changes = p.dataChanges_list(name=name.replace(" ", "_"), type_="full", refresh=True)
+
+    if data_changes["total"] != 1:
+        print(f"Data change task not found: {name}")
+        sys.exit(1)
+
+    dct_id = data_changes["data"][0]["id"]
+
+    status = p.dataChanges_activities_get(dct_id, activity_id)
+
+    if status is None:
+        sys.exit(1)
+    else:
+        print(status)

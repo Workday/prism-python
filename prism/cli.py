@@ -195,6 +195,7 @@ def dataChanges():
 dataChanges.add_command(dataChanges_commands.dataChanges_list)
 dataChanges.add_command(dataChanges_commands.dataChanges_validate)
 dataChanges.add_command(dataChanges_commands.dataChanges_run)
+dataChanges.add_command(dataChanges_commands.dataChanges_activities)
 
 
 @cli.group("fileContainers", help="File containers (fileContainers) operations to create, load, and list.")
