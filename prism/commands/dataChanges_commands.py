@@ -122,10 +122,12 @@ def dataChanges_run(ctx, name, filecontainerid):
 
 
 @click.command("activities")
+@click.option("-s", "--status", is_flag=True, default=False,
+              help="Return only the status of the activity.")
 @click.argument("name", required=True)
 @click.argument("activity_id", required=True)
 @click.pass_context
-def dataChanges_activities(ctx, name, activity_id):
+def dataChanges_activities(ctx, status, name, activity_id):
     """
     This resource executes a data change.
 
@@ -149,4 +151,7 @@ def dataChanges_activities(ctx, name, activity_id):
     if status is None:
         sys.exit(1)
     else:
-        print(status)
+        if status:
+            print(status["state"]["descriptor"])
+        else:
+            print(status)
