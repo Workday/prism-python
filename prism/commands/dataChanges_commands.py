@@ -113,5 +113,5 @@ def dataChanges_run(ctx, name, filecontainerid):
         print("Invalid DCT: " + validate["errors"][0]["error"] + " - code: " + validate["errors"][0]["code"])
         sys.exit(1)
     else:
-        dct = p.dataChanges_activities_post(dct_id, filecontainerid)
-        print(dct)
+        activity_id = p.dataChanges_activities_post(dct_id, filecontainerid)
+        print(activity_id)
