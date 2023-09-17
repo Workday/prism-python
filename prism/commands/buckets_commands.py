@@ -129,9 +129,15 @@ def buckets_upload(ctx, table_name, table_wid, schema_file, operation, generate,
 
     upload = p.buckets_upload(bucket["id"], target_files)
 
-    if upload is not None and complete:
-        complete = p.buckets_complete(bucket["id"])
+    if upload is None:
+        logger.error("Upload failed.")
+        sys.exit(1)
 
+    if complete:
+        complete = p.buckets_complete(bucket["id"])
+        print(complete)
+    else:
+        print(upload)
 
 @click.command("complete")
 @click.option("-n", "--bucket_name",
