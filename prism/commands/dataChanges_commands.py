@@ -146,12 +146,12 @@ def dataChanges_activities(ctx, status, name, activity_id):
 
     dct_id = data_changes["data"][0]["id"]
 
-    status = p.dataChanges_activities_get(dct_id, activity_id)
+    current_status = p.dataChanges_activities_get(dct_id, activity_id)
 
-    if status is None:
+    if current_status is None:
         sys.exit(1)
     else:
         if status:
-            print(status["state"]["descriptor"])
+            print(current_status["state"]["descriptor"])
         else:
-            print(status)
+            print(current_status)
