@@ -125,7 +125,7 @@ def buckets_upload(ctx, table_name, table_wid, schema_file, operation, generate,
 
     if bucket is None:
         logger.error("Invalid bucket for upload operation.")
-        return
+        sys.exit(1)
 
     upload = p.buckets_upload(bucket["id"], target_files)
 

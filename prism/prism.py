@@ -478,8 +478,8 @@ class Prism:
     def buckets_create(
             self,
             name=None,
-            target_id=None,
             target_name=None,
+            target_id=None,
             schema=None,
             operation="TruncateAndInsert"):
         """Create a temporary bucket to upload files.
