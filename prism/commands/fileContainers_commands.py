@@ -1,21 +1,26 @@
 import click
+import sys
+
 from . import util as u
 
 
-@click.command("create", help="Use this method to create a new fileContainers.")
+@click.command("create")
 @click.pass_context
 def fileContainers_create(ctx):
+    """
+    Create a new fileContainers object returning the ID.
+    """
     p = ctx.obj["p"]
 
     fileContainer = p.fileContainers_create()
 
     if fileContainer is not None:
-        print(fileContainer["id"])
+        click.echo(fileContainer["id"])
     else:
-        print("")
+        sys.exit(1)
 
 
-@click.command("list", help="This resource returns all files for a file container.")
+@click.command("list", help="List the files for a file container.")
 @click.argument("fileContainerID")
 @click.pass_context
 def filecontainers_list(ctx, filecontainerid):
@@ -23,20 +28,26 @@ def filecontainers_list(ctx, filecontainerid):
 
     files = p.filecontainers_list(filecontainerid)
 
-    print(files)
+    click.echo(files)
 
 
-@click.command("load", help="This resource loads the file into a file container.")
-@click.option("-f", "--fileContainerID", default=None, help="File container ID to load the file into.")
+@click.command("load")
+@click.option("-f", "--fileContainerID", default=None, help="Target File container ID, default to a new container.")
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
 def filecontainers_load(ctx, filecontainerid, file):
+    """
+    Load one or more file into a file container.
+
+    [FILE] one or more files to load.
+    """
     p = ctx.obj["p"]
 
     fid = u.fileContainers_load(p, filecontainerid, file)
 
     if fid is None:
-        print("Error loading fileContainer.")
+        click.echo("Error loading fileContainer.")
     else:
-        # Return the file container ID to the command line.
-        print(fid)
+        # Return the file container ID to the command line.  If a
+        # filecontainerID was passed, simply return that id.
+        click.echo(fid)

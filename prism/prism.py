@@ -13,21 +13,13 @@ import os
 import urllib
 import sys
 import uuid
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
-
-# writing to stdout
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG)
-log_format = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
-handler.setFormatter(log_format)
-logger.addHandler(handler)
+import io
+import gzip
 
 
 def log_elapsed(msg, timedelta):
     elapsed = timedelta.total_seconds()
-    logger.debug(f"{msg}: elapsed {elapsed:.5f}")
+    logging.getLogger(__name__).debug(f"{msg}: elapsed {elapsed:.5f}")
 
 
 class Prism:
@@ -79,24 +71,59 @@ class Prism:
         self.bearer_token = None
         self.bearer_token_timestamp = None
 
-    @staticmethod
-    def set_log_level(log_level=None):
-        set_level = None
+        # Default a logger - the default may be re-configured
+        # in the set_logging method.
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.WARNING)
 
+        # writing to stdout only...
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.WARNING)
+        log_format = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
+        handler.setFormatter(log_format)
+        self.logger.addHandler(handler)
+
+    def set_logging(self, log_file=None, log_level="INFO"):
+        # Resolve the log level - default to info if empty or invalid.
         if log_level is None:
             set_level = logging.INFO
         else:
-            set_level = getattr(logging, log_level)
+            # Make sure the caller gave us a valid "name" for logging level.
+            if hasattr(logging, log_level):
+                set_level = getattr(logging, log_level)
+            else:
+                set_level = getattr(logging, "INFO")
 
-        logger.setLevel(set_level)   # Convert the string to the proper log level
-        logger.debug(f"set log level: {set_level}")
+        # If no file was specified, simply loop over any handlers and
+        # set the logging level.
+        if log_file is None:
+            for handler in self.logger.handlers:
+                handler.setLevel(set_level)
+        else:
+            # Setup logging for CLI operations.
+            for handler in self.logger.handlers:
+                self.logger.removeHandler(handler)
+
+            self.logger.setLevel(set_level)
+
+            # Create a handler as specified by the user (or defaults)
+            fh = logging.FileHandler(log_file)
+            fh.setLevel(set_level)
+
+            # create formatter and add it to the handlers
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            fh.setFormatter(formatter)
+
+            self.logger.addHandler(fh)
+
+        self.logger.debug(f"set log level: {set_level}")
 
     def buckets_gen_name(self):
         return "cli_" + uuid.uuid4().hex
 
     def get(self, url, headers=None, params=None, log_tag="generic get"):
         if url is None:
-            logger.warning("http_get: missing URL")
+            self.logger.warning("http_get: missing URL")
             return None
 
         # Every request requires an authorization header - make it true.
@@ -112,13 +139,13 @@ class Prism:
         log_elapsed("GET: " + log_tag, response.elapsed)
 
         if response.status_code != 200:
-            logger.error(f"Invalid HTTP status: {response.status_code}")
+            self.logger.error(f"Invalid HTTP status: {response.status_code}")
 
         return response
 
     def validate_schema(self, schema):
         if "fields" not in schema or not isinstance(schema["fields"], list) or len(schema["fields"]) == 0:
-            logger.error("Invalid schema detected!")
+            self.logger.error("Invalid schema detected!")
             return False
 
         # Add a sequential order (ordinal) on the fields to (en)force
@@ -141,7 +168,7 @@ class Prism:
 
         """
 
-        logger.debug("create_bearer_token")
+        self.logger.debug("create_bearer_token")
 
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
@@ -156,33 +183,37 @@ class Prism:
         log_elapsed("create_bearer_token", r.elapsed)
 
         if r.status_code == 200:
-            logger.debug("successfully obtained bearer token")
+            self.logger.debug("successfully obtained bearer token")
             self.bearer_token = r.json()["access_token"]
             self.bearer_token_timestamp = time.time()
-        else:
-            logger.warning(f"HTTP status code {r.status_code}: {r.content}")
-            self.bearer_token = None
+
+            return True
+
+        self.logger.error(f"HTTP status code {r.status_code}: {r.content}")
+        self.bearer_token = None
+        self.bearer_token_timestamp = None
+
+        return False
 
     def get_bearer_token(self):
-        """Get the current bearer token, or create a new one if it doesn't exist, or it's older than 15 minutes."""
-        if self.bearer_token is None:
-            self.create_bearer_token()
-
-        if time.time() - self.bearer_token_timestamp > 900:
-            self.create_bearer_token()
+        """
+        Get the current bearer token, or create a new one if it doesn't exist, or it's older than 15 minutes.
+        """
+        if self.bearer_token is None or (time.time() - self.bearer_token_timestamp) > 900:
+            if not self.create_bearer_token():
+                return ""
 
         return self.bearer_token
 
     def reset_bearer_token(self):
         """Remove the current bearer token to force getting a new token on the next API call."""
         self.bearer_token = None
+        self.bearer_token_timestamp = None
 
     def tables_list(
             self,
-            name=None,
-            wid=None,
-            limit=None,
-            offset=None,
+            name=None, wid=None,
+            limit=None, offset=None,
             type_="summary",
             search=False):
         """Obtain details for all tables or a given table(s).
@@ -204,7 +235,7 @@ class Prism:
             The offset from zero of tables to return.
 
         type_ : str
-            details
+            Level of detail to return.
 
         search : bool
             Enable substring searching for table names or ids
@@ -216,12 +247,12 @@ class Prism:
 
         """
         operation = "/tables"
-        logger.debug(f"GET: {operation}")
+        self.logger.debug(f"GET: {operation}")
 
         url = self.prism_endpoint + operation
 
         if type_ is None or type_ not in ["full", "summary", "permissions"]:
-            logger.warning("Invalid return type for tables list operation.")
+            self.logger.warning("Invalid type for tables list operation - defaulting to summary.")
             type_ = "summary"
 
         # If we are searching, then we have to get everything using
@@ -229,12 +260,13 @@ class Prism:
 
         params = {}
 
-        # See if we want to add table name as a search parameter.
+        # See if we want to add an explicit table name as a search parameter.
         if not search and name is not None:
             # Here, the user is not searching, they gave us an exact name.
             params["name"] = name.replace(" ", "_")  # Minor clean-up
 
-            limit = 1  # Should only be 0 (not found) or 1 (found) tables found.
+            # Should only be 0 (not found) or 1 (found) tables found.
+            limit = 1
             offset = 0
 
         # When searching by name or id, set the maximum limit size to
@@ -248,31 +280,38 @@ class Prism:
             search = True  # Force a search so we get all tables
             limit = 100
 
-        if offset is None:
-            offset = 0
+        offset = offset if offset is not None else 0
 
-        # Always assume we will retrieve more than one page
+        # Finalized the parameters to the GET:/tables call.
         params["limit"] = limit
         params["offset"] = offset
         params["type"] = type_
 
-        # Always return a valid JSON object of results!
+        # Always return a valid JSON object of results regardless of
+        # errors or API responses.
         return_tables = {"total": 0, "data": []}
 
+        # Always assume we will retrieve more than one page.
         while True:
             r = self.get(url, params=params, log_tag=operation)
 
             if r.status_code != 200:
-                logger.error(f"Invalid HTTP return code: {r.status_code}")
+                self.logger.error(f"Invalid HTTP return code: {r.status_code}")
+
+                # Whatever we have captured (perhaps nothing) so far will
+                # be returned due to unexpected status code.
                 break
 
+            # Convert the response to a list of tables.
             tables = r.json()
 
             if not search and name is not None:  # Explicit table name
-                # We are not searching and we have a specific table - return whatever we got.
+                # We are not searching, and we have a specific table - return
+                # whatever we got (maybe nothing).
                 return tables
 
-            # If we are not searching, simply append all the results to the return object.
+            # Figure out what of this batch of tables should be part of the
+            # return results, i.e., search the batch for matches.
 
             if name is not None:
                 # Substring search for matching table names
@@ -292,7 +331,7 @@ class Prism:
                 break
 
             if search:
-                # Figure out what to search for on the next page.
+                # Move on to the next page.
                 offset += limit
                 params["offset"] = offset
             else:
@@ -300,7 +339,7 @@ class Prism:
                 break
 
         # We always return a valid JSON.
-        return_tables["total"] = len(return_tables["data"])
+        return_tables["total"] = len(return_tables["data"])  # Separate step for debugging.
         return return_tables
 
     def tables_create(self, schema):
@@ -318,11 +357,11 @@ class Prism:
 
         """
         operation = "/tables"
-        logger.debug(f"POST : {operation}")
-
+        self.logger.debug(f"POST : {operation}")
         url = self.prism_endpoint + "/tables"
 
         if not self.validate_schema(schema):
+            self.logger.error("Invalid schema for create operation.")
             return None
 
         headers = {
@@ -335,10 +374,10 @@ class Prism:
         if r.status_code == 201:
             return r.json()
         elif r.status_code == 400:
-            logger.warning(r.json()["errors"][0]["error"])
-            logger.warning(r.text)
+            self.logger.error(r.json()["errors"][0]["error"])
+            self.logger.error(r.text)
         else:
-            logger.warning(f"HTTP status code {r.status_code}: {r.content}")
+            self.logger.error(f"HTTP status code {r.status_code}: {r.content}")
 
         return None
 
@@ -349,8 +388,12 @@ class Prism:
         """
 
         operation = f"/tables/{wid}"
-        logger.debug(f"PUT: {operation}")
+        self.logger.debug(f"PUT: {operation}")
         url = self.prism_endpoint + operation
+
+        if not self.validate_schema(schema):
+            self.logger.error("Invalid schema for update operation.")
+            return None
 
         headers = {
             "Authorization": "Bearer " + self.get_bearer_token(),
@@ -362,10 +405,11 @@ class Prism:
         if r.status_code == 200:
             return r.json()
 
-        logger.warning(f"Error updating table {wid} - {r.text}.")
+        self.logger.error(f"Error updating table {wid} - {r.text}.")
         return None
 
-    def tables_patch(self, id, displayName=None, description=None, documentation=None, enableForAnalysis=None, schema=None):
+    def tables_patch(self, id, displayName=None, description=None, documentation=None, enableForAnalysis=None,
+                     schema=None):
         return None
 
     def buckets_list(self,
@@ -389,8 +433,7 @@ class Prism:
         """
 
         operation = "/buckets"
-        logger.debug(f"GET: {operation}")
-
+        self.logger.debug(f"GET: {operation}")
         url = self.prism_endpoint + operation
 
         # Start the return object - this routine NEVER fails
@@ -398,7 +441,7 @@ class Prism:
         return_buckets = {"total": 0, "data": []}
 
         # If we are searching, then we have to get everything first
-        # so don't add a name to the bucket.
+        # so don't add a name to the bucket query.
 
         params = {}
 
@@ -417,7 +460,7 @@ class Prism:
             limit = 100  # Max pagesize to retrieve in the fewest REST calls.
             offset = 0
 
-        params["limit"] = limit
+        params["limit"] = limit if limit is not None else 100
         params["offset"] = offset if offset is not None else 0
 
         if type_ in ["summary", "full"]:
@@ -430,7 +473,7 @@ class Prism:
 
             if r.status_code != 200:
                 # We never fail, return whatever we got (if any).
-                logger.debug("Error listing buckets.")
+                self.logger.debug("Error listing buckets.")
                 return return_buckets
 
             buckets = r.json()
@@ -467,7 +510,7 @@ class Prism:
 
             if search:
                 # Figure out what to search for on the next page.
-                params["offset"] += params["limit"]
+                params["offset"] += limit
             else:
                 # The caller asked for a specific limit and offset, exit the loop.
                 break
@@ -510,6 +553,7 @@ class Prism:
 
 
         https://confluence.workday.com/display/PRISM/Public+API+V2+Endpoints+for+WBuckets
+        :param name:
         """
 
         # If the caller didn't give us a name to use for the bucket,
@@ -521,18 +565,20 @@ class Prism:
 
         # A target table must be identified by ID or name.
         if target_id is None and target_name is None:
-            logger.error("A table id or table name is required to create a bucket.")
+            self.logger.error("A table id or table name is required to create a bucket.")
             return None
 
         # The caller gave us a table wid, but didn't include a schema. Make a copy
         # of the target table's schema.  Note: WID takes precedence over name.
+        # Use type_=full to get back the schema definition.
+
         if target_id is not None:
             tables = self.tables_list(wid=target_id, type_="full")
         else:
             tables = self.tables_list(name=target_name, type_="full")
 
         if tables["total"] == 0:
-            logger.error(f"Table not found for bucket operation.")
+            self.logger.error(f"Table not found for bucket operation.")
             return None
 
         table_id = tables["data"][0]["id"]
@@ -540,7 +586,7 @@ class Prism:
         if schema is None:
             schema = self.table_to_bucket_schema(tables["data"][0])
 
-        logger.debug(f"POST: /buckets")
+        self.logger.debug(f"POST: /buckets")
         url = self.prism_endpoint + "/buckets"
 
         headers = {
@@ -558,38 +604,40 @@ class Prism:
         r = requests.post(url, headers=headers, data=json.dumps(data))
 
         if r.status_code == 201:
-            logger.info("Successfully created a new wBucket")
+            self.logger.info("successfully created a new wBucket")
             return r.json()
         elif r.status_code == 400:
-            logger.warning(r.json()["errors"][0]["error"])
-            logger.warning(r.text)
+            self.logger.error(r.json()["errors"][0]["error"])
+            self.logger.error(r.text)
         else:
-            logger.warning(f"HTTP status code {r.status_code}: {r.content}")
+            self.logger.error(f"HTTP status code {r.status_code}: {r.content}")
 
         return None
 
     def buckets_complete(self, bucketid):
-        url = self.prism_endpoint + f"/buckets/{bucketid}/complete"
+        operation = f"/buckets/{bucketid}/complete"
+        self.logger.debug(f"POST: {operation}")
+        url = self.prism_endpoint + operation
 
         headers = {
-            "Authorization": "Bearer " + self.bearer_token
+            "Authorization": "Bearer " + self.get_bearer_token()
         }
 
         r = requests.post(url, headers=headers)
 
         if r.status_code == 201:
-            logging.info("Successfully created a new wBucket")
+            self.logger.info(f"Successfully completed wBucket {bucketid}")
             return r.json()
 
         if r.status_code == 400:
-            logging.warning(r.json()["errors"][0]["error"])
+            self.logger.error(r.json()["errors"][0]["error"])
         else:
-            logging.warning(f"HTTP status code {r.status_code}: {r.content}")
+            self.logger.error(f"HTTP status code {r.status_code}: {r.content}")
 
         return None
 
     def table_to_bucket_schema(self, table):
-        """Convert schema (derived from describe table) to bucket schema
+        """Convert schema derived from list table to a bucket schema.
 
         Parameters
         ----------
@@ -608,10 +656,13 @@ class Prism:
         # in the dict that is in ['data'][0]
 
         if table is None or "fields" not in table:
-            logger.critical("Invalid table passed to table_to_bucket_schema.")
+            self.logger.error("Invalid table passed to table_to_bucket_schema.")
             return None
 
         fields = table["fields"]
+
+        # Get rid of the WPA_ fields...
+        fields[:] = [x for x in fields if "WPA" not in x["name"]]
 
         # Create and assign useAsOperationKey field with true/false values based on externalId value
         operation_key_false = {"useAsOperationKey": False}
@@ -622,9 +673,6 @@ class Prism:
                 i.update(operation_key_true)
             else:
                 i.update(operation_key_false)
-
-        # Get rid of the WPA_ fields...
-        fields[:] = [x for x in fields if "WPA" not in x["name"]]
 
         # Now trim our fields data to keep just what we need
         for i in fields:
@@ -653,7 +701,7 @@ class Prism:
 
         return bucket_schema
 
-    def buckets_upload(self, bucket_id, file):
+    def buckets_upload(self, bucket_id, file=None):
         """Upload a file to a given bucket.
 
         Parameters
@@ -661,7 +709,7 @@ class Prism:
         bucket_id : str
             The ID of the bucket that the file should be added to.
 
-        filename : str
+        file : str
             The path to your file to upload to the bucket. The file must be
             gzip compressed delimited and the file must conform to the file
             size limits.
@@ -672,8 +720,7 @@ class Prism:
 
         """
         operation = f"/buckets/{bucket_id}/files"
-        logger.debug("POST: {operation}")
-
+        self.logger.debug("POST: {operation}")
         url = self.prism_endpoint + operation
 
         headers = {"Authorization": "Bearer " + self.get_bearer_token()}
@@ -681,18 +728,25 @@ class Prism:
         results = []
 
         # Convert a single filename to a list.
-        if isinstance(file, str):
-            files = [file]
-        else:
+        if isinstance(file, list):
             files = file
+        else:
+            files = [file] # Convert to list...
 
         for f in files:
-            files = {"file": open(f, "rb")}
+            # It is legal to upload an empty file - see the table truncate method.
+            if f is None:
+                new_file = {"file": ("dummy", io.BytesIO())}
+            elif f.lower().endswith(".csv.gz"):
+                new_file = {"file": open(f, "rb")}
+            elif f.lower().endswith(".csv"):
+                with open(f, "rb") as in_file:
+                    new_file = {"file": (f + ".gz", gzip.compress(in_file.read()))}
 
-            r = requests.post(url, headers=headers, files=files)
+            r = requests.post(url, headers=headers, files=new_file)
 
             if r.status_code == 201:
-                logging.info(f"Successfully uploaded {f} to the bucket")
+                self.logger.info(f"Successfully uploaded {f} to the bucket")
 
                 if isinstance(file, str):
                     # If we got a single file, return the first result.
@@ -700,7 +754,7 @@ class Prism:
                 else:
                     results.append(r.json())
             else:
-                logging.warning(f"HTTP status code {r.status_code}: {r.content}")
+                self.logger.error(f"HTTP status code {r.status_code}: {r.content}")
 
         return results
 
@@ -802,7 +856,7 @@ class Prism:
                 dataChanges["data"] += \
                     filter(lambda dtc: dtc["name"].find(name) != -1 or
                                        dtc["displayName"].find(name) != -1,
-                                         retJSON["data"])
+                           retJSON["data"])
             else:
                 # Without searching, simply paste the current page to the list.
                 dataChanges["data"] += retJSON["data"]
@@ -837,7 +891,7 @@ class Prism:
         url = self.prism_endpoint + operation
 
         headers = {
-            "Authorization": "Bearer " + self.bearer_token,
+            "Authorization": "Bearer " + self.get_bearer_token(),
             "Content-Type": "application/json",
         }
 
@@ -1056,11 +1110,13 @@ class Prism:
         url = f"{self.wql_endpoint}{operation}"
         query_safe = urllib.parse.quote(query.strip())
 
+        query_limit = limit if limit is not None else 100
+
         offset = 0
         data = {"total": 0, "data": []}
 
         while True:
-            r = self.get(f"{url}?query={query_safe}&limit=10000&offset={offset}")
+            r = self.get(f"{url}?query={query_safe}&limit={query_limit}&offset={offset}")
 
             if r.status_code == 200:
                 ds = r.json()
@@ -1126,6 +1182,6 @@ class Prism:
         return None
 
     def is_valid_operation(self, operation):
-        operation_list = ["insert", "truncateandinsert", "delete", "upsert", "update" ]
+        operation_list = ["insert", "truncateandinsert", "delete", "upsert", "update"]
 
         return operation in operation_list

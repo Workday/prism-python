@@ -50,15 +50,15 @@ def buckets_list(ctx, wid, table_name, limit, offset, type_, search, format_, bu
             target = bucket["targetDataset"]["descriptor"]
             state = bucket["state"]["descriptor"]
 
-            print(f"{display_name}, operation: {operation}, target: {target}, state: {state}")
+            click.echo(f"{display_name}, operation: {operation}, target: {target}, state: {state}")
     elif format_ == "csv":
         df = pd.json_normalize(buckets["data"])
-        print(df.to_csv(index=False))
+        click.echo(df.to_csv(index=False))
     else:
-        print(json.dumps(buckets, indent=2))
+        click.echo(json.dumps(buckets, indent=2))
 
 
-@click.command("create", help="")
+@click.command("create")
 @click.option("-n", "--table_name", default=None,
               help="Table name to associate with the bucket.")
 @click.option("-w", "--table_wid", default=None,
@@ -78,12 +78,12 @@ def buckets_create(ctx, table_name, table_wid, file_, operation, bucket_name):
     p = ctx.obj["p"]
 
     if table_name is None and table_wid is None and file_ is None:
-        print("A table must be associated with this bucket (-n, -w, or -f must be specified).")
+        click.echo("A table must be associated with this bucket (-n, -w, or -f must be specified).")
         sys.exit(1)
 
     bucket = p.buckets_create(bucket_name, table_wid, table_name, file_, operation)
 
-    print(bucket)
+    click.echo(bucket)
 
 
 @click.command("upload")
@@ -116,7 +116,7 @@ def buckets_upload(ctx, table_name, table_wid, schema_file, operation, generate,
     target_files = u.compress_files(file)
 
     if len(target_files) == 0:
-        print("No files to upload.")
+        click.echo("No files to upload.")
         sys.exit(1)
 
     # We think we have a file(s) - we don't test the contents.
@@ -135,9 +135,9 @@ def buckets_upload(ctx, table_name, table_wid, schema_file, operation, generate,
 
     if complete:
         complete = p.buckets_complete(bucket["id"])
-        print(complete)
+        click.echo(complete)
     else:
-        print(upload)
+        click.echo(upload)
 
 @click.command("complete")
 @click.option("-n", "--bucket_name",
@@ -153,7 +153,7 @@ def buckets_complete(ctx, bucket_name, bucket_wid):
     p = ctx.obj["p"]
 
     if bucket_wid is None and bucket_name is None:
-        print("A bucket wid or a bucket name must be specified.")
+        click.echo("A bucket wid or a bucket name must be specified.")
         sys.exit(1)
 
     if bucket_wid is not None:
@@ -172,26 +172,34 @@ def buckets_complete(ctx, bucket_name, bucket_wid):
     bucket_state = bucket["state"]["descriptor"]
 
     if bucket_state != "New":
-        print(f"Bucket state is \"{bucket_state}\" - only \"New.\" buckets can be completed.")
+        click.echo(f"Bucket state is \"{bucket_state}\" - only \"New.\" buckets can be completed.")
         sys.exit(1)
 
-    print(p.buckets_complete(bucket["id"]))
+    click.echo(p.buckets_complete(bucket["id"]))
 
 
 @click.command("status")
-@click.option("-w", "--wid", required=False, help="Bucket name to status")
+@click.option("-w", "--wid", required=False, help="Bucket wid to status")
 @click.argument("name", required=False)
 @click.pass_context
 def buckets_status(ctx, name, wid):
+    """
+    Get the status of a bucket by name or workday ID.
+
+    [NAME] name of bucket.
+    """
     p=ctx.obj["p"]
 
     buckets=p.buckets_list(wid, bucket_name=name)
 
     if buckets["total"] != 0:
-        print(buckets["data"][0]["state"]["descriptor"])
+        click.echo(buckets["data"][0]["state"]["descriptor"])
 
 
 @click.command("name")
 @click.pass_context
 def buckets_name(ctx):
-    print(ctx.obj["p"].buckets_gen_name())
+    """
+    Generate a bucket name to use for other bucket operations.
+    """
+    click.echo(ctx.obj["p"].buckets_gen_name())

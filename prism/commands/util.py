@@ -1,13 +1,13 @@
-import gzip
 import os.path
 import sys
-import shutil
 import json
 import csv
+import click
+import logging
 
 
 def get_schema(p, file, sourceName, sourceWID):
-    # Start witha blank schema definition.
+    # Start with a blank schema definition.
     schema = {}
 
     # A file always takes precedence over sourceName and sourceWID
@@ -19,7 +19,7 @@ def get_schema(p, file, sourceName, sourceWID):
                 with open(file) as json_file:
                     schema = json.load(json_file)
             except Exception as e:
-                print(f"Invalid schema file: {e.msg}.")
+                click.echo(f"Invalid schema file: {e.msg}.")
                 sys.exit(1)
 
             # The JSON file could be a complete table definitions (GET:/tables - full) or just
@@ -31,18 +31,18 @@ def get_schema(p, file, sourceName, sourceWID):
             else:
                 # This should be a full schema, perhaps from a table list command.
                 if "name" not in schema and "fields" not in schema:
-                    print("Invalid schema - name and fields attribute not found.")
+                    click.echo("Invalid schema - name and fields attribute not found.")
                     sys.exit(1)
         elif file.lower().endswith(".csv"):
             schema = schema_from_csv(p, file)
         else:
-            print("Invalid file extension - valid extensions are .json or .csv.")
+            click.echo("Invalid file extension - valid extensions are .json or .csv.")
             sys.exit(1)
     else:
         # No file was specified, check for a source table.
 
         if sourceName is None and sourceWID is None:
-            print("No schema provided and a table (--sourceName or --sourceWID) not specified.")
+            click.echo("No schema provided and a table (--sourceName or --sourceWID) not specified.")
             sys.exit(1)
 
         if sourceWID is not None:
@@ -51,7 +51,7 @@ def get_schema(p, file, sourceName, sourceWID):
             tables = p.tables_list(name=sourceName, type_="full")  # Exact match on API Name
 
         if tables["total"] == 0:
-            print("Invalid --sourceName or --sourceWID : table not found.")
+            click.echo("Invalid --sourceName or --sourceWID : table not found.")
             sys.exit(1)
         else:
             schema = tables["data"][0]
@@ -60,8 +60,6 @@ def get_schema(p, file, sourceName, sourceWID):
 
 
 def schema_from_csv(prism, file):
-    global data_sources
-
     schema = {"fields": []}  # Start with an empy schema definition.
 
     with open(file, newline='') as csvfile:
@@ -74,7 +72,7 @@ def schema_from_csv(prism, file):
         # The minimum definition is a name column - exit if not found.  No other
         # column definition is required to build a valid field list.
         if "name" not in reader.fieldnames:
-            print("CSV file {file} does not contain a name column header in first line.")
+            click.echo(f"CSV file {file} does not contain a name column header in first line.")
             sys.exit(1)
 
         # Prism fields always have an ordinal sequence assigned to each field.
@@ -97,27 +95,22 @@ def schema_from_csv(prism, file):
             else:
                 field["externalId"] = False
 
-            match row["type"].lower():
-                case "text":
-                    field["type"] = {
-                        "id": "fdd7dd26156610006a12d4fd1ea300ce",
-                        "descriptor": "Text"
-                    }
-                case "date":
-                    field["type"] = {
-                        "id": "fdd7dd26156610006a71e070b08200d6",
-                        "descriptor": "Date"
-                    }
+            fld_type = "none"
 
+            if "type" in row and row["type"] in ["text", "date", "numeric", "instance"]:
+                field["type"] = { "id" : f'Schema_Field_Type={row["type"]}'}
+                fld_type = row["type"].lower()
+            else:
+                field["type"] = { "id" : f'Schema_Field_Type=Text'}
+
+            match fld_type:
+                case "date":
                     if "parseformat" in row and isinstance(row["parseformat"], str) and len(row["parseformat"]) > 0:
                         field["parseFormat"] = row["parseformat"]
+                    else:
+                        field["parseFormat"] = "yyyy-MM-dd"
 
                 case "numeric":
-                    field["type"] = {
-                        "id": "32e3fa0dd9ea1000072bac410415127a",
-                        "descriptor": "Numeric"
-                    }
-
                     if "precision" in row:
                         field["precision"] = row["precision"]
 
@@ -127,17 +120,11 @@ def schema_from_csv(prism, file):
                 case "instance":
                     # We need all the data sources to resolve the business objects
                     # to include their WID.
-                    if data_sources is None:
-                        data_sources = prism.datasources_list()
+                    data_sources = prism.datasources_list()
 
-                        if data_sources is None or data_sources["total"] == 0:
-                            print("Error calling WQL/dataSources")
-                            return
-
-                    field["type"] = {
-                        "id": "db9cd1dbf95010000e8fc7c78cd012a9",
-                        "descriptor": "Instance"
-                    }
+                    if data_sources is None or data_sources["total"] == 0:
+                        click.echo("Error calling WQL/dataSources")
+                        return
 
                     # Find the matching businessObject
                     bo = [ds for ds in data_sources["data"]
@@ -145,12 +132,6 @@ def schema_from_csv(prism, file):
 
                     if len(bo) == 1:
                         field["businessObject"] = bo[0]["businessObject"]
-                case _:
-                    # Default to string
-                    field["type"] = {
-                        "id": "fdd7dd26156610006a12d4fd1ea300ce",
-                        "descriptor": "Text"
-                    }
 
             schema["fields"].append(field)
             ordinal += 1
@@ -191,7 +172,7 @@ def fileContainers_load(prism, filecontainersid, file):
     # by checking the extension.
 
     if file is None or len(file) == 0:
-        print("An existing file name is required to upload to a file container.")
+        click.echo("An existing file name is required to upload to a file container.")
         return None
 
     # Verify that each file is already a gzip file or a CSV we gzip for them.
@@ -199,23 +180,7 @@ def fileContainers_load(prism, filecontainersid, file):
     # The CSV contents are not validated here - Prism eventually
     # returns an error if the content is invalid.
 
-    target_files = []
-
-    for f in file:
-        target_file = file
-
-        if f.lower().endswith(".csv"):
-            # GZIP the file into the same directory with the appropriate extension.
-            target_file = f + ".gz"
-
-            with open(f, 'rb') as f_in:
-                with gzip.open(target_file, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-        elif not f.lower().endswith(".gz"):
-            print(f"File {f} is not a .gz or .csv file.")
-            return None
-
-        target_files.append(target_file)
+    target_files = compress_files(file)
 
     # Assume we have a fID - it can be None right now
     # if the user wants to create a fileContainers during
@@ -226,11 +191,13 @@ def fileContainers_load(prism, filecontainersid, file):
         # Load the file and retrieve the fID - this is only
         # set by the load on the first file - subsequent
         # files are loaded into the same container (fID).
-        fID = prism.filecontainers_load(fID, target_file, )
+        fID = prism.filecontainers_load(fID, target_file)
 
         # If the fID comes back blank, then something is not
         # working.  Note: any error messages have already
         # been displayed by the load operation.
+
+        # NOTE: this operation never fails, the file is skipped.
         if fID is None:
             break
 
@@ -240,39 +207,33 @@ def fileContainers_load(prism, filecontainersid, file):
     return fID
 
 
-def compress_files(files):
+def get_files(files):
     target_files = []
 
     if files is None:
-        print("File(s) must be specified.")
+        logging.getLogger("prismCLI").warning("File(s) must be specified.")
         return target_files
     elif isinstance(files, list) and len(files) == 0:
-        print("File(s) must be specified.")
+        logging.getLogger("prismCLI").warning("File(s) must be specified.")
         return target_files
-    elif isinstance(files, str) and not files:
-        print("File(s) must be specified.")
+    elif isinstance(files, tuple) and len(files) == 0:
+        logging.getLogger("prismCLI").warning("File(s) must be specified.")
         return target_files
-
-    if isinstance(files, str):
-        files = [ files ]
+    elif isinstance(files, str):
+        if not files:
+            logging.getLogger("prismCLI").warning("File(s) must be specified.")
+            return target_files
+        else:
+            files = [ files ]
 
     for f in files:
         if not os.path.exists(f):
-            print(f"FIle {f} not found - skipping.")
+            logging.getLogger("prismCLI").warning(f"FIle {f} not found - skipping.")
             continue
 
-        if f.lower().endswith(".csv"):
-            # GZIP the file into the same directory with the appropriate extension.
-            target_file = f + ".gz"
-
-            with open(f, 'rb') as f_in:
-                with gzip.open(target_file, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-
-            target_files.append(target_file)
-        elif f.lower().endswith(".gz"):
+        if f.lower().endswith(".csv") or f.lower().endswith(".csv.gz"):
             target_files.append(f)
         else:
-            print(f"File {f} is not a .gz or .csv file - skipping.")
+            logging.getLogger("prismCLI").warning(f"File {f} is not a .gz or .csv file - skipping.")
 
     return target_files

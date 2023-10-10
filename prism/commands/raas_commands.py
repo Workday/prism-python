@@ -12,12 +12,12 @@ def run(ctx, system, user, format_, report, params):
     p = ctx.obj["p"]
 
     if system and user is not None:
-        print("Please specify only system or user, not both.")
+        click.echo("Please specify only system or user, not both.")
         return
 
     if not system and user is None:
-        print("Please specify either system or user.")
+        click.echo("Please specify either system or user.")
 
     report_output = p.raas_run(report, system, user, params, format_)
 
-    print(report_output)
+    click.echo(report_output)

@@ -2,6 +2,7 @@ import click
 import json
 import pandas as pd
 
+
 @click.command("dataSources",
                help="View the buckets permitted by the security profile of the current user.")
 @click.option("-w", "--wid",
@@ -19,7 +20,7 @@ def dataSources(ctx, wid, limit, offset, search, name):
 
     ds = p.wql_dataSources(wid, limit, offset, name, search)
 
-    print(json.dumps(ds, indent=2))
+    click.echo(json.dumps(ds, indent=2))
 
 
 @click.command("data",
@@ -38,7 +39,7 @@ def data(ctx, limit, offset, file_, csv_, query):
     p = ctx.obj["p"]
 
     if file_ is None and query is None:
-        print("No query provided")
+        click.echo("No query provided")
         return
 
     if query is not None:
@@ -52,7 +53,7 @@ def data(ctx, limit, offset, file_, csv_, query):
     if rows["total"] != 0:
         if csv_:
             df = pd.json_normalize(rows["data"])
-            print(df.to_csv(index=False))
+            click.echo(df.to_csv(index=False))
         else:
-            print(json.dumps(rows, indent=2))
+            click.echo(json.dumps(rows, indent=2))
 

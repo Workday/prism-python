@@ -32,7 +32,7 @@ def dataChanges_list(ctx, name, wid, activity_wid, limit, offset, type_, format_
     data_changes = p.dataChanges_list(name, wid, activity_wid, limit, offset, type_, search)
 
     if data_changes["total"] == 0:
-        print("No data change tasks found.")
+        click.echo("No data change tasks found.")
         return
 
     data_changes["data"] = sorted(data_changes["data"], key=lambda dct: dct["displayName"].lower())
@@ -48,12 +48,12 @@ def dataChanges_list(ctx, name, wid, activity_wid, limit, offset, type_, format_
             target_name = dct["target"]["name"]
             operation = dct["operation"]["operationType"]["descriptor"]
 
-            print(f"{display_name}, source: {source_name}, target: {target_name}, operation: {operation}")
+            click.echo(f"{display_name}, source: {source_name}, target: {target_name}, operation: {operation}")
     elif format_ == "csv":
         df = pd.json_normalize(data_changes["data"])
-        print(df.to_csv(index=False))
+        click.echo(df.to_csv(index=False))
     else:
-        print(json.dumps(data_changes["data"], indent=2))
+        click.echo(json.dumps(data_changes["data"], indent=2))
 
 
 @click.command("validate", help="Validate the data change specified by name or ID.")
@@ -65,7 +65,7 @@ def dataChanges_validate(ctx, name, wid, search):
     p = ctx.obj["p"]
 
     if name is None and wid is None:
-        print("A data change task name or a wid must be specified.")
+        click.echo("A data change task name or a wid must be specified.")
         sys.exit(1)
 
     # See if we have any matching data change tasks.
@@ -76,12 +76,12 @@ def dataChanges_validate(ctx, name, wid, search):
         refresh=True)
 
     if data_changes["total"] == 0:
-        print("No matching data change task(s) found.")
+        click.echo("No matching data change task(s) found.")
         sys.exit(1)
 
     for dct in data_changes["data"]:
         validate = p.dataChanges_validate(dct["id"])
-        print(validate)
+        click.echo(validate)
 
 
 @click.command("run")
@@ -90,7 +90,7 @@ def dataChanges_validate(ctx, name, wid, search):
 @click.pass_context
 def dataChanges_run(ctx, name, filecontainerid):
     """
-    This resource executes a data change.
+    Execute the named data change task with an optional file container.
 
     [NAME]  Data Change Task name.
     [FILECONTAINERID] File container with files to load.
@@ -102,7 +102,7 @@ def dataChanges_run(ctx, name, filecontainerid):
     data_changes = p.dataChanges_list(name=name.replace(" ", "_"), type_="full", refresh=True)
 
     if data_changes["total"] != 1:
-        print(f"Data change task not found: {name}")
+        click.echo(f"Data change task not found: {name}")
         sys.exit(1)
 
     dct_id = data_changes["data"][0]["id"]
@@ -110,7 +110,7 @@ def dataChanges_run(ctx, name, filecontainerid):
     validate = p.dataChanges_validate(dct_id)
 
     if "error" in validate:
-        print("Invalid DCT: " + validate["errors"][0]["error"] + " - code: " + validate["errors"][0]["code"])
+        click.echo("Invalid DCT: " + validate["errors"][0]["error"] + " - code: " + validate["errors"][0]["code"])
         sys.exit(1)
     else:
         activity_id = p.dataChanges_activities_post(dct_id, filecontainerid)
@@ -118,7 +118,7 @@ def dataChanges_run(ctx, name, filecontainerid):
         if activity_id is None:
             sys.exit(1)
         else:
-            print(activity_id)
+            click.echo(activity_id)
 
 
 @click.command("activities")
@@ -129,10 +129,10 @@ def dataChanges_run(ctx, name, filecontainerid):
 @click.pass_context
 def dataChanges_activities(ctx, status, name, activity_id):
     """
-    This resource executes a data change.
+    Get the status for a specific activity associated with a data change task.
 
     [NAME]  Data Change Task name.
-    [FILECONTAINERID] File container with files to load.
+    [ACTIVITY_ID] File container with files to load.
     """
 
     p = ctx.obj["p"]
@@ -141,7 +141,7 @@ def dataChanges_activities(ctx, status, name, activity_id):
     data_changes = p.dataChanges_list(name=name.replace(" ", "_"), type_="full", refresh=True)
 
     if data_changes["total"] != 1:
-        print(f"Data change task not found: {name}")
+        click.echo(f"Data change task not found: {name}")
         sys.exit(1)
 
     dct_id = data_changes["data"][0]["id"]
@@ -152,6 +152,6 @@ def dataChanges_activities(ctx, status, name, activity_id):
         sys.exit(1)
     else:
         if status:
-            print(current_status["state"]["descriptor"])
+            click.echo(current_status["state"]["descriptor"])
         else:
-            print(current_status)
+            click.echo(current_status)
