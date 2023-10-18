@@ -1,53 +1,77 @@
 import click
 import sys
+import json
+import logging
 
-from . import util as u
+logger = logging.getLogger('prismCLI')
 
 
 @click.command("create")
 @click.pass_context
 def fileContainers_create(ctx):
-    """
-    Create a new fileContainers object returning the ID.
+    """Create a new fileContainers object returning the ID.
+
+    Returns
+    -------
+    str
+        File container ID of the new container.
     """
     p = ctx.obj["p"]
 
-    fileContainer = p.fileContainers_create()
+    file_container = p.fileContainers_create()
 
-    if fileContainer is not None:
-        click.echo(fileContainer["id"])
+    if file_container is not None:
+        logger.info(file_container["id"])
     else:
         sys.exit(1)
 
 
-@click.command("list", help="List the files for a file container.")
-@click.argument("fileContainerID")
+@click.command("get")
+@click.argument("id", required=True)
 @click.pass_context
-def filecontainers_list(ctx, filecontainerid):
+def fileContainers_get(ctx, id):
+    """List the files in a file container.
+
+    [ID] File container ID to list.
+    """
+
     p = ctx.obj["p"]
 
-    files = p.filecontainers_list(filecontainerid)
+    files_list = p.fileContainers_get(id)
 
-    click.echo(files)
+    logger.info(json.dumps(files_list, indent=2))
 
 
 @click.command("load")
-@click.option("-f", "--fileContainerID", default=None, help="Target File container ID, default to a new container.")
+@click.option("-i", "--id", default=None,
+              help="Target File container ID - defaults to a new container.")
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
-def filecontainers_load(ctx, filecontainerid, file):
+def fileContainers_load(ctx, id, file):
     """
-    Load one or more file into a file container.
+    Load one or more files into a file container returning the container ID.
 
-    [FILE] one or more files to load.
+    [FILE] one or more CSV or GZipped CSV files to load.
     """
+
+    if len(file) == 0:  # Click gives a tuple - even if no files included
+        logger.error("One or more files must be specified.")
+
     p = ctx.obj["p"]
 
-    fid = u.fileContainers_load(p, filecontainerid, file)
+    # Load the file and retrieve the ID - a new fID is
+    # created if the command line ID was not specified.
+    # Subsequent files are loaded into the same container (fID).
+    results = p.fileContainers_load(id=id, file=file)
 
-    if fid is None:
-        click.echo("Error loading fileContainer.")
+    # If the fID comes back blank, then something is not
+    # working.  Note: any error messages have already
+    # been logged by the load operation.
+
+    if results['total'] == 0:
+        logger.error("A file container id is required to load a file.")
+        sys.exit(1)
     else:
         # Return the file container ID to the command line.  If a
-        # filecontainerID was passed, simply return that id.
-        click.echo(fid)
+        # fileContainerID was passed, simply return that id.
+        logger.info(json.dumps(results, indent=2))

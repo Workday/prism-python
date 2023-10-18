@@ -6,12 +6,13 @@ import logging
 
 import prism
 
-from commands import tables_commands
-from commands import buckets_commands
-from commands import dataChanges_commands
-from commands import fileContainers_commands
-from commands import wql_commands
-from commands import raas_commands
+import commands.tables_commands as t_commands
+import commands.buckets_commands as b_commands
+import commands.dataChanges_commands as d_commands
+import commands.dataExport_commands as e_commands
+import commands.fileContainers_commands as f_commands
+import commands.wql_commands as w_commands
+import commands.raas_commands as r_commands
 
 
 def param_fixup(value, config, config_name, option):
@@ -102,10 +103,6 @@ def cli(ctx,
             # If the configuration is not available or is invalid, exit
             sys.exit(1)
 
-    if log_file is None:
-        # Assume a file in the PWD of the process, i.e., local directory where invoked.
-        log_file = "prism.log"
-
     if log_level is None:
         set_level = logging.INFO
     else:
@@ -116,28 +113,31 @@ def cli(ctx,
     logger.setLevel(set_level)
 
     # Create a handler as specified by the user (or defaults)
-    fh = logging.FileHandler(log_file)
-    fh.setLevel(set_level)
+
+    if log_file is not None:
+        fh = logging.FileHandler(log_file)
+
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+
+        fh.setLevel(set_level)
+        logger.addHandler(fh)
 
     # Create an explicit console handler with a higher log level
     ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
 
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(message)s')
     ch.setFormatter(formatter)
-    fh.setFormatter(formatter)
 
-    # add the handlers to logger
+    ch.setLevel(logging.INFO)
     logger.addHandler(ch)
-    logger.addHandler(fh)
 
     logger.debug("completed initialization.")
 
     # initialize the Prism class from our resolved configuration.
 
     p = prism.Prism(base_url, tenant_name, client_id, client_secret, refresh_token)
-    p.set_logging(log_file, log_level)
+    prism.set_logging(log_file, log_level)
 
     # store the prism object in the Click context
     ctx.obj = {"p": p}
@@ -161,11 +161,11 @@ def tables():
     """
 
 
-tables.add_command(tables_commands.tables_list)
-tables.add_command(tables_commands.tables_create)
-tables.add_command(tables_commands.tables_update)
-tables.add_command(tables_commands.tables_upload)
-tables.add_command(tables_commands.tables_truncate)
+tables.add_command(t_commands.tables_get)
+tables.add_command(t_commands.tables_create)
+tables.add_command(t_commands.tables_edit)
+tables.add_command(t_commands.tables_upload)
+tables.add_command(t_commands.tables_truncate)
 
 
 @cli.group("buckets")
@@ -175,12 +175,13 @@ def buckets():
     """
 
 
-buckets.add_command(buckets_commands.buckets_list)
-buckets.add_command(buckets_commands.buckets_create)
-buckets.add_command(buckets_commands.buckets_complete)
-buckets.add_command(buckets_commands.buckets_status)
-buckets.add_command(buckets_commands.buckets_upload)
-buckets.add_command(buckets_commands.buckets_name)
+buckets.add_command(b_commands.buckets_get)
+buckets.add_command(b_commands.buckets_create)
+buckets.add_command(b_commands.buckets_complete)
+buckets.add_command(b_commands.buckets_status)
+buckets.add_command(b_commands.buckets_files)
+buckets.add_command(b_commands.buckets_errorFile)
+buckets.add_command(b_commands.buckets_name)
 
 
 @cli.group("dataChanges")
@@ -190,10 +191,20 @@ def dataChanges():
     """
 
 
-dataChanges.add_command(dataChanges_commands.dataChanges_list)
-dataChanges.add_command(dataChanges_commands.dataChanges_validate)
-dataChanges.add_command(dataChanges_commands.dataChanges_run)
-dataChanges.add_command(dataChanges_commands.dataChanges_activities)
+dataChanges.add_command(d_commands.dataChanges_get)
+dataChanges.add_command(d_commands.dataChanges_validate)
+dataChanges.add_command(d_commands.dataChanges_run)
+dataChanges.add_command(d_commands.dataChanges_activities)
+dataChanges.add_command(d_commands.dataChanges_upload)
+
+@cli.group("dataExport")
+def dataExport():
+    """
+    Data Change Tasks (/dataChanges) operations to list, load, and activate.
+    """
+
+
+dataExport.add_command(e_commands.dataExport_get)
 
 
 @cli.group("fileContainers")
@@ -203,20 +214,20 @@ def fileContainers():
     """
 
 
-fileContainers.add_command(fileContainers_commands.fileContainers_create)
-fileContainers.add_command(fileContainers_commands.filecontainers_list)
-fileContainers.add_command(fileContainers_commands.filecontainers_load)
+fileContainers.add_command(f_commands.fileContainers_create)
+fileContainers.add_command(f_commands.fileContainers_get)
+fileContainers.add_command(f_commands.fileContainers_load)
 
 
 @cli.group("wql")
 def wql():
     """
-    Operations to list (dataSources) and query WQL sources (data).
+    Operations to list (/dataSources) and run WQL queries (/data).
     """
 
 
-wql.add_command(wql_commands.dataSources)
-wql.add_command(wql_commands.data)
+wql.add_command(w_commands.dataSources)
+wql.add_command(w_commands.data)
 
 
 @cli.group("raas")
@@ -226,7 +237,7 @@ def raas():
     """
 
 
-raas.add_command(raas_commands.run)
+raas.add_command(r_commands.run)
 
 
 if __name__ == "__main__":
