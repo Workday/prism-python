@@ -31,10 +31,13 @@ def dataChanges_list(ctx, name, wid, activity_wid, limit, offset, type_, format_
 
     data_changes = p.dataChanges_list(name, wid, activity_wid, limit, offset, type_, search)
 
+    # Regardless of success, the list operation always returns
+    # a valid object.  Error messages will appear in the log.
     if data_changes["total"] == 0:
         click.echo("No data change tasks found.")
         return
 
+    # For display purposes, sort by display name (case-insensitive)
     data_changes["data"] = sorted(data_changes["data"], key=lambda dct: dct["displayName"].lower())
 
     # Handle output
@@ -56,19 +59,26 @@ def dataChanges_list(ctx, name, wid, activity_wid, limit, offset, type_, format_
         click.echo(json.dumps(data_changes["data"], indent=2))
 
 
-@click.command("validate", help="Validate the data change specified by name or ID.")
+@click.command("validate")
 @click.option("-w", "--wid", help="The dataChangeID to list.")
 @click.option("-s", "--search", is_flag=True, help="Use contains search substring for --name or --id (default=false).")
 @click.argument("name", required=False)
 @click.pass_context
 def dataChanges_validate(ctx, name, wid, search):
+    """
+    Validate the data change specified by name or ID.
+
+    [NAME] The API name of the data change task to validate
+    """
+
     p = ctx.obj["p"]
 
     if name is None and wid is None:
-        click.echo("A data change task name or a wid must be specified.")
+        click.echo("A data change task name or wid must be specified.")
         sys.exit(1)
 
     # See if we have any matching data change tasks.
+    # Note: datachanges_list never fails - errors may appear in the log
     data_changes = p.dataChanges_list(
         name=name,
         wid=wid,
@@ -77,11 +87,10 @@ def dataChanges_validate(ctx, name, wid, search):
 
     if data_changes["total"] == 0:
         click.echo("No matching data change task(s) found.")
-        sys.exit(1)
-
-    for dct in data_changes["data"]:
-        validate = p.dataChanges_validate(dct["id"])
-        click.echo(validate)
+    else:
+        for dct in data_changes["data"]:
+            validate = p.dataChanges_validate(dct["id"])
+            click.echo(validate)
 
 
 @click.command("run")
@@ -113,9 +122,11 @@ def dataChanges_run(ctx, name, filecontainerid):
         click.echo("Invalid DCT: " + validate["errors"][0]["error"] + " - code: " + validate["errors"][0]["code"])
         sys.exit(1)
     else:
+        # It is valid to run a data change task without a fileContainerID value.
         activity_id = p.dataChanges_activities_post(dct_id, filecontainerid)
 
         if activity_id is None:
+            click.echo("Failed to run data change task - please review the log.")
             sys.exit(1)
         else:
             click.echo(activity_id)
@@ -149,6 +160,7 @@ def dataChanges_activities(ctx, status, name, activity_id):
     current_status = p.dataChanges_activities_get(dct_id, activity_id)
 
     if current_status is None:
+        click.echo("Activity for DCT not found.")
         sys.exit(1)
     else:
         if status:

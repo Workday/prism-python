@@ -81,9 +81,10 @@ def buckets_create(ctx, table_name, table_wid, file_, operation, bucket_name):
         click.echo("A table must be associated with this bucket (-n, -w, or -f must be specified).")
         sys.exit(1)
 
-    bucket = p.buckets_create(bucket_name, table_wid, table_name, file_, operation)
+    bucket = p.buckets_create(name=bucket_name, target_wid=table_wid, target_name=table_name, schema=file_, operation=operation)
 
-    click.echo(bucket)
+    if bucket is not None:
+        click.echo(json.dumps(bucket,indent=2))
 
 
 @click.command("upload")
@@ -192,7 +193,7 @@ def buckets_status(ctx, name, wid):
 
     buckets=p.buckets_list(wid, bucket_name=name)
 
-    if buckets["total"] != 0:
+    if buckets["total"] == 1:
         click.echo(buckets["data"][0]["state"]["descriptor"])
 
 
