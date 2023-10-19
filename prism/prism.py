@@ -1388,36 +1388,70 @@ class Prism:
 
         return results
 
-    def wql_dataSources(self, id=None, limit=100, offset=0, name=None, search=False):
-        operation = "/dataSources"
-        logger.debug("wql_dataSources: {operation}")
-        url = f"{self.wql_endpoint}{operation}"
+    def wql_dataSources(self, id=None, alias=None, limit=100, offset=0, search=False):
+        operation = '/dataSources'
+
+        if id is not None:
+            operation = f'{operation}/{id}'
+            logger.debug('wql_dataSources: {operation}')
+            url = f'{self.prism_endpoint}{operation}'
+
+            response = self.http_get(url)
+
+            return response.json()
+
+        if limit is None:
+            logger.debug('wql_dataSources: {operation}')
+            url = f'{self.wql_endpoint}{operation}'
+
+        # Always return a valid list - even if empty.
+        return_sources = {'total': 0, 'data': []}
 
         offset = 0
-        return_sources = {"total": 0, "data": []}
 
         while True:
-            r = self.http_get(f"{url}?limit=100&offset={offset}")
+            r = self.http_get(f'{url}?limit=100&offset={offset}')
 
             if r.status_code == 200:
                 ds = r.json()
-                return_sources["data"] += ds["data"]
+
+                # Add this page to the final output.
+                return_sources['data'] += ds['data']
             else:
                 return None
 
-            if len(ds["data"]) < 100:
+            if len(ds['data']) < 100:
+                # A page size less than the limit means we are done.
                 break
 
             offset += 100
 
+        # Fix-up the final total of sources.
         return_sources["total"] = len(return_sources["data"])
 
         return return_sources
 
     def wql_data(self, query, limit, offset):
-        operation = "/data"
+        """Returns the data from a WQL query.
 
-        url = f"{self.wql_endpoint}{operation}"
+        Parameters
+        ----------
+        query : str
+            The WQL query that retrieves the data.
+        limit: int
+            The maximum number of objects in a single response - maximum 10,000.
+        offset: int
+            The zero-based index of the first object in a response collection.
+
+        Returns
+        -------
+        dict
+            Returned dict with a "total" row count attribute and a "data"
+            array of rows.
+        """
+        operation = '/data'
+
+        url = f'{self.wql_endpoint}{operation}'
         query_safe = urlparse.quote(query.strip())
 
         if limit is None or not isinstance(limit, int) or limit > 10000:
@@ -1428,24 +1462,26 @@ class Prism:
 
         offset = offset if offset is not None and isinstance(offset, int) else 0
 
-        data = {"total": 0, "data": []}
+        # Always return a valid object - even if no rows are returned.
+        data = {'total': 0, 'data': []}
 
         while True:
-            r = self.http_get(f"{url}?query={query_safe}&limit={query_limit}&offset={offset}")
+            r = self.http_get(f'{url}?query={query_safe}&limit={query_limit}&offset={offset}')
 
             if r.status_code == 200:
                 page = r.json()
-                data["data"] += page["data"]
+                data['data'] += page['data']
             else:
-                return data  # Return whatever we have...
+                # There was a problem, return whatever we have...
+                return data
 
-            if len(page["data"]) < query_limit:
+            if len(page['data']) < query_limit:
                 break
 
             offset += query_limit
 
         # Set the final row count.
-        data["total"] = len(data["data"])
+        data['total'] = len(data['data'])
 
         return data
 
