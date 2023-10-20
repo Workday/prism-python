@@ -125,7 +125,7 @@ def data(ctx, limit, offset, wql_file, format_, query):
     query_resolved = query_resolved.strip()
 
     # If the WQL statements starts with exactly "select *", attempt
-    # to replace the asterick with the field list.
+    # to replace the asterisk with the field list.
 
     if query_resolved.lower().startswith('select *'):
         # Locate the "FROM {ds}" clause to get the data source name.
@@ -137,7 +137,7 @@ def data(ctx, limit, offset, wql_file, format_, query):
         # To query data from a data source using entry and effective date filters:
         #   FROM dataSourceAlias(effectiveAsOfDate=date, entryMoment=dateTime)
 
-        from_regex = re.compile(r'\s+from[\s+|\(](\w+)', flags=re.IGNORECASE)
+        from_regex = re.compile(r'\s+from[\s*|(](\w+)', flags=re.IGNORECASE)
         from_clause = from_regex.search(query_resolved)
 
         ds_alias = query_resolved[from_clause.start(1):from_clause.end(1)]

@@ -1039,16 +1039,6 @@ class Prism:
                         type_='summary', search=False,
                         refresh=False):
         """
-
-        :param name:
-        :param wid:
-        :param activity_id:
-        :param limit:
-        :param offset:
-        :param type_:
-        :param search:
-        :param refresh:
-        :return:
         """
         # We are doing a dataChanges GET operation.
         operation = "/dataChanges"
@@ -1124,7 +1114,7 @@ class Prism:
                 # Only add matching rows
                 data_changes["data"] += \
                     filter(lambda dtc: dtc["name"].find(name) != -1 or
-                                       dtc["displayName"].find(name) != -1,
+                                           dtc["displayName"].find(name) != -1,
                            return_json["data"])
             else:
                 # Without searching, simply paste the current page to the list.
@@ -1148,7 +1138,8 @@ class Prism:
         Parameters
         ----------
         id : str
-             A reference to a Prism Analytics data change."""
+             A reference to a Prism Analytics data change.
+        """
         operation = f"/dataChanges/{id}/activities/{activityID}"
         logger.debug(f"dataChanges_activities_get: {operation}")
         url = self.prism_endpoint + operation
@@ -1389,6 +1380,16 @@ class Prism:
         return results
 
     def wql_dataSources(self, id=None, alias=None, searchString=None, limit=None, offset=None):
+        """Returns a collection of data sources for use in a WQL query.
+
+        Parameters
+        ----------
+        id : str
+            The ID of a Workday data source.
+        alias : str
+            Filters by alias match
+        searchString : str
+        """
         operation = '/dataSources'
 
         if id is not None:
@@ -1549,7 +1550,7 @@ class Prism:
         Returns
         -------
         dict
-            Returned dict with a "total" row count attribute and a "data"
+            Returns a dict with a "total" row count attribute and a "data"
             array of rows.
         """
         operation = '/data'
