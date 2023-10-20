@@ -1388,48 +1388,151 @@ class Prism:
 
         return results
 
-    def wql_dataSources(self, id=None, alias=None, limit=100, offset=0, search=False):
+    def wql_dataSources(self, id=None, alias=None, searchString=None, limit=None, offset=None):
         operation = '/dataSources'
 
         if id is not None:
             operation = f'{operation}/{id}'
             logger.debug('wql_dataSources: {operation}')
-            url = f'{self.prism_endpoint}{operation}'
+            url = f'{self.wql_endpoint}{operation}'
 
             response = self.http_get(url)
 
             return response.json()
 
-        if limit is None:
-            logger.debug('wql_dataSources: {operation}')
-            url = f'{self.wql_endpoint}{operation}'
+        url_separator = '?'
+
+        if alias is not None:
+            operation += f'?alias={urlparse.quote(alias)}'
+            url_separator = '&'
+        elif searchString is not None:
+            operation += f'?searchString={urlparse.quote(searchString)}'
+            url_separator = '&'
+
+        logger.debug('wql_dataSources: {operation}')
+        url = f'{self.wql_endpoint}{operation}'
 
         # Always return a valid list - even if empty.
         return_sources = {'total': 0, 'data': []}
 
-        offset = 0
+        if limit is not None and isinstance(limit, int) and 0 < limit <= 100:
+            return_all = False
 
-        while True:
-            r = self.http_get(f'{url}?limit=100&offset={offset}')
+            query_limit = limit
 
-            if r.status_code == 200:
-                ds = r.json()
-
-                # Add this page to the final output.
-                return_sources['data'] += ds['data']
+            if offset is not None and isinstance(offset, int) and offset > 0:
+                query_offset = offset
             else:
-                return None
+                query_offset = 0
+        else:
+            return_all = True
 
-            if len(ds['data']) < 100:
+            query_limit = 100
+            query_offset = 0
+
+        # Assume we'll loop over more than one page.
+        while True:
+            r = self.http_get(f'{url}{url_separator}limit={query_limit}&offset={query_offset}')
+
+            if r.status_code != 200:
+                break
+
+            ds = r.json()
+
+            # Add this page to the final output.
+            return_sources['data'] += ds['data']
+
+            if not return_all:
+                break
+
+            if len(ds['data']) < query_limit:
                 # A page size less than the limit means we are done.
                 break
 
-            offset += 100
+            query_offset += query_limit
 
         # Fix-up the final total of sources.
         return_sources["total"] = len(return_sources["data"])
 
         return return_sources
+
+    def wql_dataSources_fields(self, id=None, alias=None, searchString=None, limit=None, offset=None):
+        """Retrieves a field of the data source instance.
+        
+        Parameters
+        ----------
+        id : str
+            The Workday ID of the resource.
+        alias : str
+            The alias of the data source field.
+        searchString : str
+            The string to be searched in case-insensitive manner within the descriptors of the data source fields.
+        limit : int
+            The maximum number of objects in a single response. The default is 20, the maximum is 100, and None is all.
+        offset : int
+            The zero-based index of the first object in a response collection.
+        operation = '/dataSources'
+        """
+
+        if id is None:
+            return None
+
+        operation = f'/dataSources/{id}/fields'
+        logger.debug('wql_dataSources_fields: {operation}')
+        url = f'{self.wql_endpoint}{operation}'
+
+        url_separator = '?'
+
+        if alias is not None:
+            operation += f'?alias={urlparse.quote(alias)}'
+            url_separator = '&'
+
+        if searchString is not None:
+            operation += f'{url_separator}searchString={urlparse.quote(searchString)}'
+            url_separator = '&'
+
+        if limit is not None and isinstance(limit, int) and 0 < limit <= 100:
+            return_all = False
+
+            query_limit = limit
+
+            if offset is not None and isinstance(offset, int) and offset > 0:
+                query_offset = offset
+            else:
+                query_offset = 0
+        else:
+            return_all = True
+
+            query_limit = 100
+            query_offset = 0
+
+        return_fields = {'total':0, 'data':[]}
+
+        while True:
+            url = f'{url}{url_separator}limit={query_limit}&offset={query_offset}'
+
+            response = self.http_get(url)
+
+            if response.status_code != 200:
+                break
+
+            fields = response.json()
+
+            # Add this page of fields to the final output.
+            return_fields['data'] += fields['data']
+
+            if not return_all:
+                break
+
+            if len(fields['data']) < query_limit:
+                # A page size less than the limit means we are done.
+                break
+
+            query_offset += query_limit
+
+        return_fields['total'] = len(return_fields['data'])
+
+        return return_fields
 
     def wql_data(self, query, limit, offset):
         """Returns the data from a WQL query.

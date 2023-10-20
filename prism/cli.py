@@ -227,6 +227,7 @@ def wql():
 
 
 wql.add_command(w_commands.dataSources)
+wql.add_command(w_commands.dataSources_fields)
 wql.add_command(w_commands.data)
 
 
