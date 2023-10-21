@@ -106,31 +106,40 @@ def cli(ctx,
     if log_level is None:
         set_level = logging.INFO
     else:
-        set_level = getattr(logging, log_level)
+        set_level = getattr(logging, log_level)  # Translate text level to level value.
 
     # Setup logging for CLI operations.
     logger = logging.getLogger('prismCLI')
     logger.setLevel(set_level)
 
+    # Create an explicit console handler to handle just INFO message, i.e.,
+    # script output.
+    formatter = logging.Formatter('%(message)s')
+
+    ch = logging.StreamHandler()
+    ch.setFormatter(formatter)
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
+
+    # If the log level is not INFO, create a separate stream
+    # for logging additional levels.
+    logging_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    formatter = logging.Formatter(logging_format)
+
+    if set_level != logging.INFO:
+        other_handler = logging.StreamHandler()
+        other_handler.setFormatter(formatter)
+        other_handler.setLevel(set_level)
+        logger.addHandler(other_handler)
+
     # Create a handler as specified by the user (or defaults)
 
     if log_file is not None:
+        # If a log file was specified, log EVERYTHING to the log.
         fh = logging.FileHandler(log_file)
-
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh.setFormatter(formatter)
-
         fh.setLevel(set_level)
         logger.addHandler(fh)
-
-    # Create an explicit console handler with a higher log level
-    ch = logging.StreamHandler()
-
-    formatter = logging.Formatter('%(message)s')
-    ch.setFormatter(formatter)
-
-    ch.setLevel(logging.INFO)
-    logger.addHandler(ch)
 
     logger.debug("completed initialization.")
 

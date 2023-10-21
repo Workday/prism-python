@@ -111,7 +111,7 @@ def data(ctx, limit, offset, wql_file, format_, query):
     p = ctx.obj["p"]
 
     if wql_file is None and query is None:
-        click.echo("No query provided.")
+        logger.error("No query provided.")
         sys.exit(1)
 
     if query is not None:
@@ -123,13 +123,18 @@ def data(ctx, limit, offset, wql_file, format_, query):
             query_resolved = file.read().replace('\n', ' ')
 
     query_resolved = query_resolved.strip()
+    logger.debug(f'resolved query: {query_resolved}')
 
     # If the WQL statements starts with exactly "select *", attempt
     # to replace the asterisk with the field list.
 
     if query_resolved.lower().startswith('select *'):
+        logger.debug('wql "select *" detected.')
+
         # Locate the "FROM {ds}" clause to get the data source name.
 
+        # Notes from documentation:
+        #
         # To query data from a data source:
         #   FROM dataSourceAlias
         # To query data from a data source with a data source filter:
@@ -150,6 +155,7 @@ def data(ctx, limit, offset, wql_file, format_, query):
             sys.exit(1)
 
         ds_id = ds['data'][0]['id']
+        logger.debug(f'alias {ds_alias} resolved: {ds_id}')
 
         fields = p.wql_dataSources_fields(id=ds_id)  # No limit gets all fields.
 
@@ -165,12 +171,13 @@ def data(ctx, limit, offset, wql_file, format_, query):
             comma = ','
 
         query_resolved = query_resolved.replace('*', columns, 1)
+        logger.debug(f'resolved WQL: {query_resolved}')
 
     rows = p.wql_data(query_resolved, limit, offset)
 
     if rows["total"] != 0:
         if format_ == 'tabular':
             df = pd.json_normalize(rows["data"])
-            click.echo(df.to_csv(index=False))
+            logger.info(df.to_csv(index=False))
         else:
-            click.echo(json.dumps(rows, indent=2))
+            logger.info(json.dumps(rows, indent=2))

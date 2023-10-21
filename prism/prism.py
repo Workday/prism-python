@@ -43,15 +43,17 @@ def set_logging(log_file=None, log_level="INFO"):
     if log_level is None:
         set_level = logging.INFO
     else:
-        # Make sure the caller gave us a valid "name" for logging level.
+        # Make sure the caller gave us a valid "name" (INFO/DEBUG/etc) for logging level.
         if hasattr(logging, log_level):
             set_level = getattr(logging, log_level)
         else:
-            set_level = getattr(logging, "INFO")
+            set_level = logging.INFO
 
     # If no file was specified, simply loop over any handlers and
     # set the logging level.
     if log_file is None:
+        logger.setLevel(set_level)
+
         for log_handler in logger.handlers:
             log_handler.setLevel(set_level)
     else:
@@ -1186,8 +1188,8 @@ class Prism:
             logger.debug(f"successfully started data load task - id: {activity_id}")
             return return_json
         elif r.status_code == 400:
-            logger.debug(f'error running data change task.')
-            return r.json()
+            logger.error(f'error running data change task.')
+            return r.json()  # This is still valid JSON with the error.
 
         return None
 
@@ -1212,9 +1214,11 @@ class Prism:
             return False
 
         if "error" in dct:
-            logger.critical(f"data_change_id {id} is not valid!")
+            logger.error(f"data_change_id {id} is not valid!")
             return False
 
+        # There is no specific status value to check, we simply get
+        # a small JSON object with the ID of the DCT if it is valid.
         return True
 
     def dataChanges_validate(self, id):
@@ -1234,7 +1238,8 @@ class Prism:
 
         r = self.http_get(url)
 
-        if r.status_code in [ 200, 400, 404]:
+        if r.status_code in [200, 400, 404]:
+            # For these status codes, simply return what we got.
             return r.json()
 
         return None
@@ -1394,7 +1399,7 @@ class Prism:
 
         if id is not None:
             operation = f'{operation}/{id}'
-            logger.debug('wql_dataSources: {operation}')
+            logger.debug(f'wql_dataSources: {operation}')
             url = f'{self.wql_endpoint}{operation}'
 
             response = self.http_get(url)
@@ -1410,7 +1415,7 @@ class Prism:
             operation += f'?searchString={urlparse.quote(searchString)}'
             url_separator = '&'
 
-        logger.debug('wql_dataSources: {operation}')
+        logger.debug(f'wql_dataSources: {operation}')
         url = f'{self.wql_endpoint}{operation}'
 
         # Always return a valid list - even if empty.

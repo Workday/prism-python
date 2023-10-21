@@ -23,4 +23,4 @@ def run(ctx, user, format_, report, params):
     report_output = p.raas_run(report, user, params, format_)
 
     # Don't log the output - pusht
-    click.echo(report_output)
+    logger.info(report_output)

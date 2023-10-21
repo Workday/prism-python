@@ -48,7 +48,7 @@ def buckets_get(ctx, id, table_name, limit, offset, type_, search, format_, name
             target = bucket["targetDataset"]["descriptor"]
             state = bucket["state"]["descriptor"]
 
-            click.echo(f"{display_name}, operation: {operation}, target: {target}, state: {state}")
+            logger.info(f"{display_name}, operation: {operation}, target: {target}, state: {state}")
     elif format_ == "csv":
         df = pd.json_normalize(buckets["data"])
         logger.info(df.to_csv(index=False))

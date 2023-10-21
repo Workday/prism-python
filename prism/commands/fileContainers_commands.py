@@ -9,20 +9,16 @@ logger = logging.getLogger('prismCLI')
 @click.command("create")
 @click.pass_context
 def fileContainers_create(ctx):
-    """Create a new fileContainers object returning the ID.
+    """Create a new fileContainers object returning the ID."""
 
-    Returns
-    -------
-    str
-        File container ID of the new container.
-    """
     p = ctx.obj["p"]
 
     file_container = p.fileContainers_create()
 
     if file_container is not None:
-        logger.info(file_container["id"])
+        logger.info(json.dumps(file_container, indent=2))
     else:
+        logger.error('Error creating file container.')
         sys.exit(1)
 
 
@@ -48,14 +44,14 @@ def fileContainers_get(ctx, id):
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
 def fileContainers_load(ctx, id, file):
-    """
-    Load one or more files into a file container returning the container ID.
+    """Load one or more files into a file container returning the container ID.
 
-    [FILE] one or more CSV or GZipped CSV files to load.
+    [FILE] one or more CSV or GZipped CSV (.csv.gz) files to load.
     """
 
     if len(file) == 0:  # Click gives a tuple - even if no files included
         logger.error("One or more files must be specified.")
+        sys.exit(1)
 
     p = ctx.obj["p"]
 

@@ -144,10 +144,11 @@ def dataChanges_run(ctx, dct, fid, isname):
         data_changes = p.dataChanges_get(name=dct.replace(" ", "_"))
 
         if data_changes["total"] != 1:
-            click.echo(f"Data change task not found: {dct}")
+            logger.error(f"Data change task not found: {dct}")
             sys.exit(1)
 
         dct_id = data_changes["data"][0]["id"]
+        logger.debug(f'resolved ID: {dct_id}')
     else:
         dct_id = dct
 
@@ -173,7 +174,7 @@ def dataChanges_run(ctx, dct, fid, isname):
 def dataChanges_activities(ctx, dct, activityid, status, isname):
     """Get the status for a specific activity associated with a data change task.
 
-    [ID]         A reference to a data change task.
+    [DCT]        A reference to a data change task.
     [ACTIVITYID] A reference to a data change task activity.
     """
 
@@ -184,10 +185,11 @@ def dataChanges_activities(ctx, dct, activityid, status, isname):
         data_changes = p.dataChanges_list(name=dct.replace(" ", "_"))
 
         if data_changes["total"] != 1:
-            click.echo(f"Data change task not found: {dct}")
+            logger.error(f"Data change task not found: {dct}")
             sys.exit(1)
 
         dct_id = data_changes["data"][0]["id"]
+        logger.debug(f'resolved ID: {dct_id}')
     else:
         dct_id = dct
 
@@ -216,7 +218,7 @@ def dataChanges_activities(ctx, dct, activityid, status, isname):
 def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
     """Execute a data change task using the provided file(s).
 
-    [DCT] A reference to a Prism Analytics Data Change Task.
+    [DCT]  A reference to a Prism Analytics Data Change Task.
     [FILE] One or more .CSV or .CSV.GZ files.
     """
 
@@ -230,6 +232,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
             sys.exit(1)
 
         dct_id = data_change_tasks['data'][0]['id']
+        logger.debug(f'resolved ID: {dct_id}')
     else:
         dct_id = dct
 
@@ -241,6 +244,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
         sys.exit(1)
 
     fid = file_container['id']
+    logger.debug(f'new file container ID: {fid}')
 
     # Execute the DCT.
     activity = p.dataChanges_activities_post(id=dct_id, fileContainerID=fid)
