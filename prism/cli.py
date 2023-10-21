@@ -6,13 +6,13 @@ import logging
 
 import prism
 
-from commands import tables_commands as t_commands
-from commands import buckets_commands as b_commands
-from commands import dataChanges_commands as d_commands
-from commands import dataExport_commands as e_commands
-from commands import fileContainers_commands as f_commands
-from commands import wql_commands as w_commands
-from commands import raas_commands as r_commands
+from .commands import tables_commands as t_commands
+from .commands import buckets_commands as b_commands
+from .commands import dataChanges_commands as d_commands
+from .commands import dataExport_commands as e_commands
+from .commands import fileContainers_commands as f_commands
+from .commands import wql_commands as w_commands
+from .commands import raas_commands as r_commands
 
 
 def param_fixup(value, config, config_name, option):
