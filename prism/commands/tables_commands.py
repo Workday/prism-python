@@ -395,35 +395,32 @@ def schema_from_csv(prism, file):
                 # Default all "un-typed" fields to text.
                 field['type'] = {'id': 'Schema_Field_Type=Text'}
 
-            match fld_type:
-                case 'date':
-                    if 'parseformat' in row and isinstance(row['parseformat'], str) and len(row['parseformat']) > 0:
-                        field['parseFormat'] = row['parseformat']
-                    else:
-                        field['parseFormat'] = 'yyyy-MM-dd'
+            if fld_type == 'date':
+                if 'parseformat' in row and isinstance(row['parseformat'], str) and len(row['parseformat']) > 0:
+                    field['parseFormat'] = row['parseformat']
+                else:
+                    field['parseFormat'] = 'yyyy-MM-dd'
+            elif fld_type == 'numeric':
+                if 'precision' in row:
+                    field['precision'] = row['precision']
 
-                case 'numeric':
-                    if 'precision' in row:
-                        field['precision'] = row['precision']
+                    if 'scale' in row:
+                        field['scale'] = row['scale']
+            elif fld_type == 'instance':
+                # We need all the data sources to resolve the business objects
+                # to include their WID.
+                data_sources = prism.datasources_list()
 
-                        if 'scale' in row:
-                            field['scale'] = row['scale']
+                if data_sources is None or data_sources['total'] == 0:
+                    click.echo('Error calling WQL/dataSources')
+                    return
 
-                case 'instance':
-                    # We need all the data sources to resolve the business objects
-                    # to include their WID.
-                    data_sources = prism.datasources_list()
+                # Find the matching businessObject
+                bo = [ds for ds in data_sources['data']
+                      if ds['businessObject']['descriptor'] == row['businessObject']]
 
-                    if data_sources is None or data_sources['total'] == 0:
-                        click.echo('Error calling WQL/dataSources')
-                        return
-
-                    # Find the matching businessObject
-                    bo = [ds for ds in data_sources['data']
-                          if ds['businessObject']['descriptor'] == row['businessObject']]
-
-                    if len(bo) == 1:
-                        field['businessObject'] = bo[0]['businessObject']
+                if len(bo) == 1:
+                    field['businessObject'] = bo[0]['businessObject']
 
             schema['fields'].append(field)
             ordinal += 1
