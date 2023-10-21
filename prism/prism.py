@@ -547,7 +547,8 @@ class Prism:
             # return results, i.e., search the this batch for matches.
             if name is not None:
                 # Substring search for matching table names, display names
-                match_tables = [tab for tab in tables["data"] if name in tab["name"] or name in tab["displayName"]]
+                match_tables = [tab for tab in tables["data"]
+                                if name.lower() in tab["name"].lower() or name.lower() in tab["displayName"].lower()]
             else:
                 # Grab all the tables in the result
                 match_tables = tables["data"]
@@ -1116,7 +1117,7 @@ class Prism:
                 # Only add matching rows
                 data_changes["data"] += \
                     filter(lambda dtc: dtc["name"].find(name) != -1 or
-                                           dtc["displayName"].find(name) != -1,
+                                       dtc["displayName"].find(name) != -1,
                            return_json["data"])
             else:
                 # Without searching, simply paste the current page to the list.
@@ -1307,7 +1308,7 @@ class Prism:
         if response.status_code == 404:
             logger.warning('verify: Self-Service: Prism File Container domain in the Prism Analytics functional area.')
 
-        return {"total": 0, 'data' : []}  # Always return a list.
+        return {"total": 0, 'data': []}  # Always return a list.
 
     def fileContainers_load(self, id, file):
         """
@@ -1512,7 +1513,7 @@ class Prism:
             query_limit = 100
             query_offset = 0
 
-        return_fields = {'total':0, 'data':[]}
+        return_fields = {'total': 0, 'data': []}
 
         while True:
             url = f'{url}{url_separator}limit={query_limit}&offset={query_offset}'
