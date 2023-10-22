@@ -464,7 +464,7 @@ class Prism:
         type_ : str
             Level of detail to return.
         search : bool
-            Enable contains searching for table names ans display names.
+            Enable contains searching for table names and display names.
 
         Returns
         -------
@@ -773,8 +773,8 @@ class Prism:
                 # Caller is looking for any/all buckets by target table
                 match_buckets = [
                     bck for bck in buckets["data"]
-                    if table_name == bck["targetDataset"]["descriptor"]
-                       or (search and table_name.lower() in bck["targetDataset"]["descriptor"].lower())
+                    if table_name == bck["targetDataset"]["descriptor"] or
+                    (search and table_name.lower() in bck["targetDataset"]["descriptor"].lower())
                 ]
             else:
                 # Grab all the tables in the result - select all buckets.
@@ -985,6 +985,7 @@ class Prism:
         else:
             target_files = resolve_file_list(file)
 
+        target_file: str
         for target_file in target_files:
             if target_file is None:
                 new_file = {"file": ("empty", io.BytesIO())}
@@ -1079,6 +1080,7 @@ class Prism:
             search_offset = offset
 
         searching = False
+        name_param = ""
 
         if name is not None and isinstance(name, str) and len(name) > 0:
             if search is not None and isinstance(search, bool) and search:
@@ -1117,7 +1119,7 @@ class Prism:
                 # Only add matching rows
                 data_changes["data"] += \
                     filter(lambda dtc: dtc["name"].find(name) != -1 or
-                                       dtc["displayName"].find(name) != -1,
+                           dtc["displayName"].find(name) != -1,
                            return_json["data"])
             else:
                 # Without searching, simply paste the current page to the list.

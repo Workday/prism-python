@@ -172,7 +172,8 @@ def tables():
 
 tables.add_command(t_commands.tables_get)
 tables.add_command(t_commands.tables_create)
-tables.add_command(t_commands.tables_edit)
+tables.add_command(t_commands.tables_put)
+tables.add_command(t_commands.tables_patch)
 tables.add_command(t_commands.tables_upload)
 tables.add_command(t_commands.tables_truncate)
 
