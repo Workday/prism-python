@@ -61,7 +61,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
         # When querying by name, the get operation returns a
         # dict with a count of found tables and a list of
         # tables.
-        tables = p.tables_get(name=table, limit=limit, offset=offset, search=search)
+        tables = p.tables_get(name=table, limit=limit, offset=offset, type_=type_, search=search)
 
         if tables['total'] == 0:
             logger.error(f"Table ID {table} not found.")
