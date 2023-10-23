@@ -363,7 +363,7 @@ def tables_truncate(ctx, table, isname):
     bucket_id = bucket['id']
 
     # Don't specify a file to put a zero sized file into the bucket.
-    p.buckets_upload(bucket_id)
+    p.buckets_files(bucket_id)
 
     # Ask Prism to run the delete statement by completing the bucket.
     bucket = p.buckets_complete(bucket_id)
