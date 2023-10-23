@@ -301,18 +301,29 @@ def tables_upload(ctx, table, isname, operation, file):
         sys.exit(1)
 
     if isname:
-        bucket = p.buckets_create(target_id=table, operation=operation)
-    else:
         bucket = p.buckets_create(target_name=table, operation=operation)
+    else:
+        bucket = p.buckets_create(target_id=table, operation=operation)
 
     if bucket is None:
         logger.error('Bucket creation failed.')
         sys.exit(1)
 
-    results = p.buckets_upload(bucket['id'], file)
+    logger.debug(json.dumps(bucket, indent=2))
+    bucket_id = bucket['id']
 
-    if len(results) > 0:
-        p.buckets_complete(bucket['id'])
+    file_results = p.buckets_files(bucket_id, file)
+
+    if file_results['total'] > 0:
+        results = p.buckets_complete(bucket_id)
+
+        # Add the file upload results to the bucket
+        # info returned to the caller.
+        results['files'] = file_results
+
+        logger.info(json.dumps(results, indent=2))
+    else:
+        logger.info('No files uploaded to table.')
 
 
 @click.command('truncate')

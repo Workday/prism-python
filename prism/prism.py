@@ -814,7 +814,7 @@ class Prism:
         target_name : str
             The name of the table for bucket.
         schema : dict
-            A dictionary containing the schema for your table.
+            A dictionary containing the schema fields describing the file.
         operation : str
            Required, defaults to "TruncateAndInsert" operation
 
@@ -850,6 +850,8 @@ class Prism:
 
         # Resolve the target table; if specified.
         if target_id is None and target_name is None:
+            # The caller expects the schema to come from the
+            # passed schema - do a quick sanity check.
             if table_schema is None:
                 logger.error("schema, target id or target name is required to create a bucket.")
                 return None
@@ -858,7 +860,7 @@ class Prism:
                 logger.error('schema missing "id" or "fields" attribute.')
                 return None
         else:
-            if target_id is not None:  # Always use ID if provided.
+            if target_id is not None:  # Always use ID if provided - has precedence.
                 table = self.tables_get(id=target_id, type_="full")  # Full=include fields object
 
                 if table is None:
@@ -900,8 +902,10 @@ class Prism:
         response = self.http_post(url, headers=self.CONTENT_APP_JSON, data=json.dumps(data))
 
         if response.status_code == 201:
-            logger.info("successfully created a new wBucket")
-            return response.json()
+            response_json = response.json()
+
+            logger.debug(f'successfully created a new wBucket: {response_json["id"]}')
+            return response_json
 
         return None
 
@@ -926,7 +930,7 @@ class Prism:
         r = self.http_post(url)
 
         if r.status_code == 201:
-            logger.info(f'successfully completed wBucket {id}.')
+            logger.debug(f'successfully completed wBucket {id}.')
             return r.json()
 
         return None
