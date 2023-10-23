@@ -100,24 +100,7 @@ def schema_fixup(schema):
         logger.error("schema_fixup: schema is not a dictionary.")
         return False
 
-    def is_valid_string(attr):
-        if attr not in schema or not isinstance(schema[attr], str) or len(schema[attr]) == 0:
-            return False
-
-        return True
-
-    def is_valid_list(attr):
-        """Ensure the attribute exists in the schema."""
-        if attr not in schema or not isinstance(schema[attr], list):
-            return False
-
-        return True
-
-    if not is_valid_string('id'):
-        logger.error("id attribute missing")
-        return False
-
-    if not is_valid_list('fields'):
+    if 'fields' not in schema or not isinstance(schema['fields'], list):
         logger.error("fields attribute missing from schema!")
         return False
 
