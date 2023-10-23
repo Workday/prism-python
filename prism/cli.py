@@ -116,7 +116,7 @@ def cli(ctx,
     # script output.
     formatter = logging.Formatter('%(message)s')
 
-    ch = logging.StreamHandler()
+    ch = logging.StreamHandler(sys.stdout)
     ch.setFormatter(formatter)
     ch.setLevel(logging.INFO)
     logger.addHandler(ch)
