@@ -11,7 +11,7 @@ logger = logging.getLogger('prismCLI')
 @click.option("-i", "--id", "id",
               help="The Workday ID of the bucket.")
 @click.option("-n", "--table_name",
-              help="The display name of the table to retrieve (see search option).")
+              help="The API name of the table to retrieve (see search option).")
 @click.option("-l", "--limit", default=None, type=int,
               help="The maximum number of object data entries included in the response, default=-1 (all).")
 @click.option("-o", "--offset", default=None, type=int,

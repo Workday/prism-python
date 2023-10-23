@@ -113,6 +113,20 @@ def schema_fixup(schema):
         fld = schema["fields"][ordinal]
         fld["ordinal"] = ordinal + 1
 
+        if 'fieldId' in fld:
+            del fld['fieldId']
+
+        if 'id' in fld:
+            del fld['id']
+
+        if 'type' in fld:
+            if 'descriptor' in fld['type']:
+                # Convert the descriptor to the shortened Prism type syntax.
+                fld['type']['id'] = f"Schema_Field_Type={fld['type']['descriptor']}"
+                del fld['type']['descriptor']
+
+    # Remove all attributes from the schema that cannot be specified on
+    # a post or put operation.
     keys = list(schema.keys())
 
     for k in keys:

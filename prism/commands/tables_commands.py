@@ -6,6 +6,8 @@ import csv
 import click
 import pandas as pd
 
+from prism import schema_fixup
+
 logger = logging.getLogger('prismCLI')
 
 
@@ -21,7 +23,7 @@ logger = logging.getLogger('prismCLI')
               help='How much information returned for each table.')
 @click.option('-f', '--format', 'format_', default='json',
               type=click.Choice(['json', 'tabular', 'schema'], case_sensitive=False),
-              help='Format output as JSON, tabular, or bucket schema.')
+              help='Format output as JSON, tabular, or simplified table schema.')
 @click.option('-s', '--search', is_flag=True,
               help='Enable substring search of NAME in api name or display name, default=False (exact match).')
 @click.argument('table', required=False)
@@ -51,7 +53,13 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
             sys.exit(1)
 
         if format_ == 'schema':
-            logger.info(json.dumps(get_fields(table), indent=2))
+            # Same as JSON, but with extraneous attributes removed.
+            if schema_fixup(table):
+                logger.info(json.dumps(schema_fixup(table), indent=2))
+            else:
+                # This should never happen.
+                logger.error('invalid schema detected.')
+                sys.exit(1)
         elif format_ == 'tabular':
             df = pd.json_normalize(table)
             logger.info(df.to_csv(index=False))
@@ -73,12 +81,13 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
             df = pd.json_normalize(tables['data'])
             logger.info(df.to_csv(index=False))
         elif format_ == 'schema':
-            fields = []
-
+            # Slim down all the tables we got back.
             for tab in tables['data']:
-                fields.append(get_fields(tab))
+                if not schema_fixup(tab):
+                    logger.error('unexpected error in schema_fixup.')
+                    sys.exit()
 
-            logger.info(json.dumps(fields, indent=2))
+            logger.info(json.dumps(tables, indent=2))
 
 
 @click.command('create')
