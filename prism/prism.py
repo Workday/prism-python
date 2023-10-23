@@ -993,7 +993,7 @@ class Prism:
         target_file: str
         for target_file in target_files:
             if target_file is None:
-                new_file = {"file": ("empty", io.BytesIO())}
+                new_file = {"file": ("empty.csv.gz", gzip.compress(bytearray()))}
             elif target_file.lower().endswith(".csv.gz"):
                 new_file = {"file": open(target_file, "rb")}
             elif target_file.lower().endswith(".csv"):
