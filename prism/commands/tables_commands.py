@@ -186,7 +186,10 @@ def tables_put(ctx, file, truncate):
 @click.pass_context
 def tables_patch(ctx, isname, table, file,
                  displayname, description, documentation, enableforanalysis):
-    """Edit the schema for an existing table.
+    """Edit the specified attributes of an existing table with the specified id (or name).
+
+    If an attribute is not provided in the request, it will not be changed.  To set an
+    attribute to blank (empty), include the attribute without specifying a value.
 
     TABLE  The ID or API name (use -n option) of the table to patch
     [FILE] Optional file containing patch values for the table.
