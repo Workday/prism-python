@@ -107,6 +107,7 @@ def schema_fixup(schema):
         return True
 
     def is_valid_list(attr):
+        """Ensure the attribute exists in the schema."""
         if attr not in schema or not isinstance(schema[attr], list):
             return False
 
@@ -132,7 +133,8 @@ def schema_fixup(schema):
     keys = list(schema.keys())
 
     for k in keys:
-        if k not in ['name', 'id', 'fields', 'tags', 'displayName', 'description', 'documentation',
+        if k not in ['name', 'id', 'fields', 'tags', 'categories',
+                     'displayName', 'description', 'documentation',
                      'enableForAnalysis']:
             del schema[k]
 
@@ -600,7 +602,7 @@ class Prism:
 
         return None
 
-    def tables_put(self, id, schema, truncate=False):
+    def tables_put(self, schema, truncate=False):
         """Update an existing table using a full schema definition.
 
         Notes
@@ -610,9 +612,6 @@ class Prism:
 
         Parameters
         ----------
-        id : str
-            Prism Table ID of an existing table.
-
         schema : dict
             A dictionary containing the schema
 
@@ -626,13 +625,15 @@ class Prism:
             If the request is successful, a dictionary containing information about
             the new table is returned, otherwise None.
         """
-        operation = f"/tables/{id}"
-        logger.debug(f"PUT: {operation}")
-        url = self.prism_endpoint + operation
-
         if not schema_fixup(schema):
             logger.error("Invalid schema for update operation.")
             return None
+
+        table_id = schema['id']
+
+        operation = f"/tables/{table_id}"
+        logger.debug(f"PUT: {operation}")
+        url = self.prism_endpoint + operation
 
         response = self.http_put(url=url, data=schema)
 
