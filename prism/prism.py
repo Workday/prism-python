@@ -932,6 +932,9 @@ class Prism:
         if r.status_code == 201:
             logger.debug(f'successfully completed wBucket {id}.')
             return r.json()
+        elif r.status_code == 400:
+            logger.debug(f'error completing bucket')
+            return r.json()
 
         return None
 
