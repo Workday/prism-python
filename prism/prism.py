@@ -673,10 +673,9 @@ class Prism:
         return None
 
     def buckets_get(self,
-                    id=None, name=None,
-                    limit=None, offset=None,
-                    type_="summary",
-                    table_name=None, search=False):
+                    id=None, name=None, search=False,
+                    limit=None, offset=None, type_="summary",
+                    table_id=None, table_name=None):
         """Get a one or more bucket definitions.
 
         Parameters
@@ -691,6 +690,8 @@ class Prism:
             The offset from zero of tables to return.
         type_ : str
             Level of detail to return.
+        table_id : str
+            List all/any buckets for associated with the table id.
         table_name : str
             List all/any buckets for associated with the table name.
         search : bool
@@ -707,7 +708,8 @@ class Prism:
 
         output_type = type_.lower() if type_.lower() in ['full', 'summary'] else 'summary'
 
-        # If we got an ID, then do a direct query by ID - no paging or searching required.
+        # If we got an ID, then do a direct query by ID - no paging or
+        # searching required.
         if id is not None:
             operation = f"{operation}/{id}?format={output_type}"
             logger.debug(f"get: {operation}")
@@ -723,7 +725,7 @@ class Prism:
         logger.debug(f"get: {operation}")
         url = self.prism_endpoint + operation
 
-        # Start the return object - this routine NEVER fails
+        # Start the return object - this method NEVER fails
         # and always returns a valid dict object.
         return_buckets = {"total": 0, "data": []}
 
@@ -736,13 +738,13 @@ class Prism:
         if not search and name is not None:
             # List a specific bucket name overrides any other
             # combination of search/table/bucket name/wid.
-            params['name'] = name
+            params['name'] = urlparse.quote(name)
 
             params['limit'] = 1  # Can ONLY be one matching bucket.
             params['offset'] = 0
         else:
             # Any other combination of parameters requires a search
-            # through all the buckets in the tenant.
+            # through all the buckets in the data catalog.
             search = True
 
             params['limit'] = 100  # Max pagesize to retrieve in the fewest REST calls.
@@ -757,25 +759,30 @@ class Prism:
 
             buckets = r.json()
 
-            if not search and name is not None:  # Explicit bucket name
+            if not search and name is not None:  # exact bucket name
                 # We are not searching, and we have a specific bucket,
-                # return whatever we got with this call (it will be in
-                # the necessary dict structure).
+                # return whatever we got with this call even if no buckets
+                # were found (it will be in the necessary dict structure).
                 return buckets
 
             if name is not None:  # We are searching at this point.
                 # Substring search for matching table names
                 match_buckets = [bck for bck in buckets["data"] if
                                  name in bck["name"] or name in bck["displayName"]]
+            elif table_id is not None:
+                match_buckets = [
+                    bck for bck in buckets["data"]
+                    if table_id == bck["targetDataset"]["id"]
+                ]
             elif table_name is not None:
-                # Caller is looking for any/all buckets by target table
+                # Caller is looking for any/all buckets by target table(s)
                 match_buckets = [
                     bck for bck in buckets["data"]
                     if table_name == bck["targetDataset"]["descriptor"] or
                     (search and table_name.lower() in bck["targetDataset"]["descriptor"].lower())
                 ]
             else:
-                # Grab all the tables in the result - select all buckets.
+                # No search in progress, grab all the buckets in this page.
                 match_buckets = buckets["data"]
 
             # Add to the results.

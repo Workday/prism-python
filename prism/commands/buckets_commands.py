@@ -8,10 +8,8 @@ logger = logging.getLogger('prismCLI')
 
 
 @click.command("get")
-@click.option("-i", "--id", "id",
-              help="The Workday ID of the bucket.")
-@click.option("-n", "--table_name",
-              help="The API name of the table to retrieve (see search option).")
+@click.option('-n', '--isName', is_flag=True, default=False,
+              help='Flag to treat the bucket or table argument as a name.')
 @click.option("-l", "--limit", default=None, type=int,
               help="The maximum number of object data entries included in the response, default=-1 (all).")
 @click.option("-o", "--offset", default=None, type=int,
@@ -19,41 +17,68 @@ logger = logging.getLogger('prismCLI')
 @click.option("-t", "--type", "type_", default="summary", show_default=True,
               help="How much information to be returned in response JSON.")
 @click.option("-s", "--search", is_flag=True, show_default=True, default=False,
-              help="Use contains search substring for --table_name or --wid.")
+              help="Use substring search bucket or table.")
 @click.option("-f", "--format", "format_",
-              type=click.Choice(['json', 'summary', 'schema', 'csv'], case_sensitive=False),
+              type=click.Choice(['json', 'tabular', 'schema'], case_sensitive=False),
               default="json",
-              help="Format output as JSON, summary, schema, or CSV.",
+              help="Format output as JSON, tabular, or CSV.",
               )
-@click.argument("name", required=False)
+@click.option("--table",
+              help="The id or name of a Prism table to list all buckets.")
+@click.argument("bucket", required=False)
 @click.pass_context
-def buckets_get(ctx, id, table_name, limit, offset, type_, search, format_, name):
+def buckets_get(ctx, bucket, table, isname,
+                limit, offset, type_, search, format_):
     """
     View the buckets permitted by the security profile of the current user.
 
-    [NAME] explicit name of bucket to list.
+    [BUCKET] ID or name of a Prism bucket.
+
+    NOTE: For table name searching, this will be the Display Name not
+    the API Name.
     """
 
     p = ctx.obj["p"]
 
-    buckets = p.buckets_get(id, name, limit, offset, type_, table_name, search)
+    if isname and bucket is None and table is None:
+        # It's invalid to add the --isName switch without providing a bucket name.
+        logger.error('To get buckets by name, please provide a bucket name.')
+        sys.exit(1)
 
-    if buckets["total"] == 0:
+    if not isname and bucket is not None:
+        # This should be a bucket ID - ignore all other options.
+        bucket = p.buckets_get(id=bucket, type_=type_)
+
+        if format_ == "tabular":
+            df = pd.json_normalize(bucket)
+            logger.info(df.to_csv(index=False))
+        else:
+            logger.info(json.dumps(bucket, indent=2))
+
         return
 
-    if format_ == "summary":
-        for bucket in buckets["data"]:
-            display_name = bucket["displayName"]
-            operation = bucket["operation"]["descriptor"]
-            target = bucket["targetDataset"]["descriptor"]
-            state = bucket["state"]["descriptor"]
+    # We are doing some form of search.
 
-            logger.info(f"{display_name}, operation: {operation}, target: {target}, state: {state}")
-    elif format_ == "csv":
-        df = pd.json_normalize(buckets["data"])
-        logger.info(df.to_csv(index=False))
+    if isname and bucket is not None:
+        # This should be a search by bucket name.
+        buckets = p.buckets_get(name=bucket, type_=type_, search=search)
     else:
-        logger.info(json.dumps(buckets, indent=2))
+        # Search by table ID or name.
+        if isname:
+            buckets = p.buckets_get(table_name=table, search=search,
+                                    limit=limit, offset=offset, type_=type_)
+        else:
+            buckets = p.buckets_get(table_id=table,
+                                    limit=limit, offset=offset, type_=type_)
+
+    if buckets['total'] == 0:
+        logger.info('No buckets found.')
+    else:
+        if format_ == "tabular":
+            df = pd.json_normalize(buckets["data"])
+            logger.info(df.to_csv(index=False))
+        else:
+            logger.info(json.dumps(buckets, indent=2))
 
 
 @click.command("create")
