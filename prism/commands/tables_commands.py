@@ -55,7 +55,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
         if format_ == 'schema':
             # Same as JSON, but with extraneous attributes removed.
             if schema_fixup(table):
-                logger.info(json.dumps(schema_fixup(table), indent=2))
+                logger.info(json.dumps(table, indent=2))
             else:
                 # This should never happen.
                 logger.error('invalid schema detected.')
