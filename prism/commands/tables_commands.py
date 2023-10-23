@@ -555,29 +555,3 @@ def resolve_schema(p=None, file=None, source_name=None, source_id=None):
             schema = tables['data'][0]
 
     return schema
-
-
-def get_fields(table):
-    if 'fields' not in table:
-        logger.error('get_fields: table object does not contain fields attribute.')
-        return None
-
-    # Remove the Prism audit columns.
-    fields = [fld for fld in table['fields'] if not fld['name'].startswith('WPA_')]
-
-    # Remove tenant specific values - these are not needed
-    # if the user wants to update a table definition.
-    for fld in fields:
-        if 'fieldId' in fld:
-            del fld['fieldId']
-
-        if 'id' in fld:
-            del fld['id']
-
-        if 'type' in fld:
-            if 'descriptor' in fld['type']:
-                # Convert the descriptor to the shortened Prism type syntax.
-                fld['type']['id'] = f"Schema_Field_Type={fld['type']['descriptor']}"
-                del fld['type']['descriptor']
-
-    return fields
