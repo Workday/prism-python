@@ -320,6 +320,7 @@ def tables_upload(ctx, table, isname, operation, file):
         # Add the file upload results to the bucket
         # info returned to the caller.
         results['files'] = file_results
+        results['bucket'] = bucket  # Ensure bucket info is present.
 
         logger.info(json.dumps(results, indent=2))
     else:
