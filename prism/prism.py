@@ -880,13 +880,13 @@ class Prism:
                 return None
         else:
             if target_id is not None:  # Always use ID if provided - has precedence.
-                table = self.tables_get(id=target_id, type_="full")  # Full=include fields object
+                table = self.tables_get(table_id=target_id, type_="full")  # Full=include fields object
 
                 if table is None:
                     logger.error(f'table ID {target_id} not found.')
                     return None
             else:
-                tables = self.tables_get(name=target_name, type_="full")
+                tables = self.tables_get(table_name=target_name, type_="full")
 
                 if tables["total"] == 0:
                     logger.error(f"table not found for bucket operation.")
