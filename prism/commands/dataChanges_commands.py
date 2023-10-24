@@ -68,7 +68,7 @@ def dataChanges_validate(ctx, isname, dct, search):
     p = ctx.obj["p"]
 
     if not isname:
-        validate = p.dataChanges_validate(id)
+        validate = p.dataChanges_validate(dct)
         logger.info(json.dumps(validate, indent=2))
     else:
         data_change_tasks = p.dataChanges_get(name=dct, search=search)

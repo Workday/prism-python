@@ -1074,7 +1074,7 @@ class Prism:
 
             return None
 
-        logger.debug(f"dataChanges_get: {operation}")
+        logger.debug(f'dataChanges_get: {operation}')
         url = self.prism_endpoint + operation
 
         # Get a list of tasks by page, with or without searching.
@@ -1101,7 +1101,7 @@ class Prism:
                 search_offset = 0
             else:
                 # With an explicit name, we should return at most 1 result.
-                name_param = "&name=" + urlparse.quote(datachange_name)
+                name_param = f'&name={urlparse.quote(datachange_name)}'
                 searching = False
 
                 search_limit = 1
@@ -1114,8 +1114,7 @@ class Prism:
         data_changes = {"total": 0, "data": []}
 
         while True:
-            search_url = f"{url}?type={output_type}&limit={search_limit}&offset={search_offset}{name_param}"
-            logger.debug(f"dataChangesID url: {search_url}")
+            search_url = f'{url}?type={output_type}&limit={search_limit}&offset={search_offset}{name_param}'
 
             response = self.http_get(url=search_url)
 
