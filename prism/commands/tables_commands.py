@@ -326,5 +326,3 @@ def tables_truncate(ctx, table, isname):
     if bucket is None:
         logger.error(msg)
         sys.exit(1)
-
-
