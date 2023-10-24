@@ -1051,7 +1051,7 @@ class Prism:
         return None
 
     def dataChanges_get(self,
-                        name=None, id=None,
+                        datachange_name=None, datachange_id=None,
                         limit=None, offset=None,
                         type_='summary', search=False,
                         refresh=False):
@@ -1066,8 +1066,8 @@ class Prism:
         # Searching by ID is a special case that eliminates all other types
         # of search.  Ask for the datachange by id and return just this
         # result - even blank.
-        if id is not None and isinstance(id, str) and len(id) > 0:
-            operation = f"{operation}/{id}?type={output_type}"
+        if datachange_id is not None and isinstance(datachange_id, str) and len(datachange_id) > 0:
+            operation = f"{operation}/{datachange_id}?type={output_type}"
             logger.debug(f'dataChanges_get: {operation}')
             url = self.prism_endpoint + operation
 
@@ -1095,17 +1095,17 @@ class Prism:
         searching = False
         name_param = ""
 
-        if name is not None and isinstance(name, str) and len(name) > 0:
+        if datachange_name is not None and isinstance(datachange_name, str) and len(datachange_name) > 0:
             if search is not None and isinstance(search, bool) and search:
                 # Force a return of ALL data change tasks, so we can search the names.
-                name_param = ""
+                name_param = ""  # Added to the query params
                 searching = True
 
                 search_limit = 500
                 search_offset = 0
             else:
                 # With an explicit name, we should return at most 1 result.
-                name_param = "&name=" + urlparse.quote(name)
+                name_param = "&name=" + urlparse.quote(datachange_name)
                 searching = False
 
                 search_limit = 1
@@ -1131,8 +1131,8 @@ class Prism:
             if searching:
                 # Only add matching rows
                 data_changes["data"] += \
-                    filter(lambda dtc: dtc["name"].find(name) != -1 or
-                           dtc["displayName"].find(name) != -1,
+                    filter(lambda dtc: dtc["name"].find(datachange_name) != -1 or
+                           dtc["displayName"].find(datachange_name) != -1,
                            return_json["data"])
             else:
                 # Without searching, simply paste the current page to the list.
@@ -1144,7 +1144,7 @@ class Prism:
                 break
 
             # Go to the next page.
-            offset += search_limit
+            search_offset += search_limit
 
         data_changes["total"] = len(data_changes["data"])
 
@@ -1155,8 +1155,10 @@ class Prism:
 
         Parameters
         ----------
-        id : str
+        datachange_id : str
              A reference to a Prism Analytics data change.
+        activity_id : str
+            A reference to a Prism Analytics activity.
         """
         operation = f"/dataChanges/{datachange_id}/activities/{activity_id}"
         logger.debug(f"dataChanges_activities_get: {operation}")
