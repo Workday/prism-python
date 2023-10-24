@@ -1447,7 +1447,7 @@ def resolve_file_list(files):
     return target_files
 
 
-def table_upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
+def upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
     """Create a new Prism table.
 
     Parameters
@@ -1494,7 +1494,29 @@ def table_upload_file(p, file, table_id=None, table_name=None, operation="Trunca
         return file_results
 
 
-def resolve_schema(p=None, file=None, source_name=None, source_id=None):
+def truncate_table(p, table_id=None, table_name=None):
+    # To do a truncate, we still need a bucket with a truncate operation.
+    if table_id is not None:
+        bucket = p.buckets_create(target_id=table_id, operation='TruncateAndInsert')
+    else:
+        bucket = p.buckets_create(target_name=table_name, operation='TruncateAndInsert')
+
+    if bucket is None:
+        logger.error(f'Unable to truncate table - see log for details.')
+        return None
+
+    bucket_id = bucket['id']
+
+    # Don't specify a file to put a zero sized file into the bucket.
+    p.buckets_files(bucket_id)
+
+    # Ask Prism to run the delete statement by completing the bucket.
+    bucket = p.buckets_complete(bucket_id)
+
+    return bucket
+
+
+def load_schema(p=None, file=None, source_name=None, source_id=None):
     """Get or extract a schema from a file or existing Prism table."""
 
     # Start with a blank schema definition.

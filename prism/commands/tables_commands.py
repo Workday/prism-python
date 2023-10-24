@@ -65,12 +65,10 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
 
 
 @click.command('create')
-@click.option('-n', '--name',
+@click.option('-n', '--table_name',
               help='Table name - overrides name from schema.')
 @click.option('-d', '--displayName',
               help='Specify a display name - defaults to name.')
-@click.option('-t', '--tags', multiple=True,
-              help='Tags to organize the table in the Data Catalog.')
 @click.option('-e', '--enableForAnalysis', type=bool, is_flag=True, default=None,
               help='Enable this table for analytics.')
 @click.option('-s', '--sourceName',
@@ -79,7 +77,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
               help='The WID of an existing table to copy.')
 @click.argument('file', required=False, type=click.Path(exists=True))
 @click.pass_context
-def tables_create(ctx, name, displayname, tags, enableforanalysis, sourcename, sourcewid, file):
+def tables_create(ctx, table_name, displayname, enableforanalysis, sourcename, sourcewid, file):
     """
     Create a new table with the specified name.
 
@@ -90,12 +88,12 @@ def tables_create(ctx, name, displayname, tags, enableforanalysis, sourcename, s
     p = ctx.obj['p']
 
     # We can assume a schema was found/built - get_schema sys.exits if there is a problem.
-    schema = resolve_schema(p, file, sourcename, sourcewid)
+    schema = load_schema(p, file, sourcename, sourcewid)
 
     # Initialize a new schema with the particulars for this table operation.
-    if name is not None:
+    if table_name is not None:
         # If we got a name, set it in the table schema
-        schema['name'] = name.replace(' ', '_')  # Minor clean-up
+        schema['name'] = table_name.replace(' ', '_')  # Minor clean-up
         logger.debug(f'setting table name to {schema["name"]}')
     elif 'name' not in schema:
         # The schema doesn't have a name and none was given - exit.
@@ -108,7 +106,7 @@ def tables_create(ctx, name, displayname, tags, enableforanalysis, sourcename, s
         schema['displayName'] = displayname
     elif 'displayName' not in schema:
         # Default the display name to the name if not in the schema.
-        schema['displayName'] = name
+        schema['displayName'] = table_name
         logger.debug(f'defaulting displayName to {schema["displayName"]}')
 
     if enableforanalysis is not None:
@@ -124,7 +122,7 @@ def tables_create(ctx, name, displayname, tags, enableforanalysis, sourcename, s
     if table_def is not None:
         logger.info(json.dumps(table_def, indent=2))
     else:
-        logger.error(f'Error creating table {name}.')
+        logger.error(f'Error creating table {schema["name"]}.')
         sys.exit(1)
 
 
@@ -143,7 +141,7 @@ def tables_edit(ctx, file, truncate):
     # The user can specify a GET:/tables output file containing
     # the ID and other attributes that could be passed on the
     # command line.
-    schema = resolve_schema(file=file)
+    schema = load_schema(file=file)
 
     table = p.tables_put(schema, truncate=truncate)
 
@@ -174,7 +172,7 @@ def tables_patch(ctx, isname, table, file,
     If an attribute is not provided in the request, it will not be changed.  To set an
     attribute to blank (empty), include the attribute without specifying a value.
 
-    TABLE  The ID or API name (use -n option) of the table to patch
+    [TABLE] The ID or API name (use -n option) of the table to patch
     [FILE] Optional file containing patch values for the table.
     """
 
@@ -183,9 +181,8 @@ def tables_patch(ctx, isname, table, file,
     # Figure out the new schema either by file or other table.
     patch_data = {}
 
-    # The user can specify a GET:/tables output file containing
-    # the ID and other attributes that could be passed on the
-    # command line.
+    # If a file is specified, there can only be patch values and
+    # cannot be a full Prism schema.
     if file is not None:
         try:
             with open(file, "r") as patch_file:
@@ -206,7 +203,11 @@ def tables_patch(ctx, isname, table, file,
                 sys.exit(1)
 
     def set_patch_value(attr, value):
-        """Utility function to set or clear a table attribute."""
+        """Utility function to set or clear a table attribute.
+
+        If the user specifies an attribute but does not provide a value,
+        add a patch value to clears/null the value
+        """
         if value == '*-clear-*':
             patch_data[attr] = ''
         else:
@@ -216,7 +217,9 @@ def tables_patch(ctx, isname, table, file,
     # values from the patch file.
 
     # Note: specifying the option without a value creates a
-    # patch value to clear the value in the table def.
+    # patch value to clear the value in the table def.  The
+    # caller can override the values from the patch file using
+    # command line arguments.
     if displayname is not None:  # Specified on CLI
         set_patch_value('displayName', displayname)
 
@@ -234,14 +237,11 @@ def tables_patch(ctx, isname, table, file,
 
     # The caller must be asking for something to change!
     if len(patch_data) == 0:
-        logger.error("Specify at least one schema value to update.")
+        logger.error("Specify at least one table schema value to update.")
         sys.exit(1)
 
     # Identify the existing table we are about to patch.
     if not isname:
-        # No verification, simply assume the ID is valid.
-        resolved_id = table
-    else:
         # Before doing anything, table name must exist.
         tables = p.tables_get(table_name=table)  # Exact match
 
@@ -250,6 +250,9 @@ def tables_patch(ctx, isname, table, file,
             sys.exit(1)
 
         resolved_id = tables['data'][0]['id']
+    else:
+        # No verification needed, simply assume the ID is valid.
+        resolved_id = table
 
     table = p.tables_patch(table_id=resolved_id, patch=patch_data)
 
@@ -284,9 +287,9 @@ def tables_upload(ctx, table, isname, operation, file):
         sys.exit(1)
 
     if isname:
-        results = table_upload_file(p, table_name=table, operation=operation)
+        results = upload_file(p, table_name=table, operation=operation)
     else:
-        results = table_upload_file(p, table_id=table, operation=operation)
+        results = upload_file(p, table_id=table, operation=operation)
 
     logger.debug(json.dumps(results, indent=2))
 
@@ -303,26 +306,13 @@ def tables_truncate(ctx, table, isname):
     [TABLE] The Prism Table ID or API name of the table to truncate.
     """
     p = ctx.obj['p']
-    msg = f'Unable to truncate table "{table}" - see log for details.'
 
-    # To do a truncate, we still need a bucket with a truncate operation.
     if isname:
-        bucket = p.buckets_create(target_name=table, operation='TruncateAndInsert')
+        result = truncate_table(p, table_name=table)
     else:
-        bucket = p.buckets_create(target_id=table, operation='TruncateAndInsert')
+        result = truncate_table(p, table_id=table)
 
-    if bucket is None:
-        logger.error(msg)
-        sys.exit(1)
-
-    bucket_id = bucket['id']
-
-    # Don't specify a file to put a zero sized file into the bucket.
-    p.buckets_files(bucket_id)
-
-    # Ask Prism to run the delete statement by completing the bucket.
-    bucket = p.buckets_complete(bucket_id)
-
-    if bucket is None:
-        logger.error(msg)
-        sys.exit(1)
+    if result is None:
+        logger.warning("Table was not truncated.")
+    else:
+        logger.info(json.dumps(result, indent=2))
