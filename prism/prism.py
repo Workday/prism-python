@@ -987,7 +987,7 @@ class Prism:
             each file.
         """
         operation = f"/buckets/{bucket_id}/files"
-        logger.debug("post: {operation}")
+        logger.debug(f"post: {operation}")
         url = self.prism_endpoint + operation
 
         results = {'total': 0, 'data': []}  # Always return a valid list - regardless of files
@@ -1040,7 +1040,7 @@ class Prism:
             return None
 
         operation = f"/buckets/{bucket_id}/errorFile"
-        logger.debug("post: {operation}")
+        logger.debug(f"post: {operation}")
         url = self.prism_endpoint + operation
 
         response = self.http_get(url)
