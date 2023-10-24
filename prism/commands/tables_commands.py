@@ -37,7 +37,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
     if not isname and table is not None:
         # When using an ID, the GET:/tables operation returns a simple
         # dictionary of the table definition.
-        table = p.tables_get(id=table, type_=type_)
+        table = p.tables_get(table_id=table, type_=type_)
 
         if table is None:
             logger.error(f"Table ID {table} not found.")
@@ -51,7 +51,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
         # When querying by name, the get operation returns a
         # dict with a count of found tables and a list of
         # tables.
-        tables = p.tables_get(name=table, limit=limit, offset=offset, type_=type_, search=search)
+        tables = p.tables_get(table_name=table, limit=limit, offset=offset, type_=type_, search=search)
 
         if tables['total'] == 0:
             logger.error(f"Table ID {table} not found.")

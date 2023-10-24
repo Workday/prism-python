@@ -432,7 +432,7 @@ class Prism:
 
     def tables_get(
             self,
-            name=None, id=None,
+            table_name=None, table_id=None,
             limit=None, offset=None,
             type_="summary",
             search=False):
@@ -444,10 +444,10 @@ class Prism:
 
         Parameters
         ----------
-        name : str
+        table_name : str
             The name of the table to obtain details about. If the default value
             of None is specified.
-        id : str
+        table_id : str
             The ID of a table to obtain details about.  When specified, all tables
             are searched for the matching id.
         limit : int
@@ -475,8 +475,8 @@ class Prism:
             output_type = type_.lower()
 
         # If we got a WID, then do a direct query by ID - no paging or searching required.
-        if id is not None:
-            operation = f"{operation}/{id}?format={output_type}"
+        if table_id is not None:
+            operation = f"{operation}/{table_id}?format={output_type}"
             logger.debug(f"get: {operation}")
             url = self.prism_endpoint + operation
 
@@ -503,9 +503,9 @@ class Prism:
         }
 
         # See if we want to add an explicit table name as a search parameter.
-        if not search and name is not None:
+        if not search and table_name is not None:
             # Here, the caller is not searching, they gave us an exact name.
-            params["name"] = name.replace(" ", "_")  # Minor clean-up
+            params["name"] = table_name.replace(" ", "_")  # Minor clean-up
 
             # Should only be 0 (not found) or 1 (found) tables found.
             params['limit'] = 1
@@ -531,17 +531,17 @@ class Prism:
             # Convert the response to a list of tables.
             tables = r.json()
 
-            if not search and name is not None:  # Explicit table name
+            if not search and table_name is not None:  # Explicit table name
                 # We are not searching, and we have a specific table - return
                 # whatever we got (maybe nothing).
                 return tables
 
             # Figure out what tables of this batch of tables should be part of the
             # return results, i.e., search the this batch for matches.
-            if name is not None:
+            if table_name is not None:
                 # Substring search for matching table names, display names
                 match_tables = [tab for tab in tables["data"]
-                                if name.lower() in tab["name"].lower() or name.lower() in tab["displayName"].lower()]
+                                if table_name.lower() in tab["name"].lower() or table_name.lower() in tab["displayName"].lower()]
             else:
                 # Grab all the tables in the result
                 match_tables = tables["data"]
@@ -637,7 +637,7 @@ class Prism:
 
         return None
 
-    def tables_patch(self, id, patch):
+    def tables_patch(self, table_id, patch):
         """Patch the table with specified values.
 
         Notes
@@ -647,7 +647,7 @@ class Prism:
 
         Parameters
         ----------
-        id : str
+        table_id : str
             Prism Table ID of an existing table.
 
         patch : dict
@@ -659,7 +659,7 @@ class Prism:
             If the request is successful, a dictionary containing information about
             the new table is returned, otherwise None.
         """
-        operation = f'/tables/{id}'
+        operation = f'/tables/{table_id}'
         logger.debug(f'PATCH: {operation}')
         url = self.prism_endpoint + operation
 
