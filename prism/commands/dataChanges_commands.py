@@ -30,7 +30,7 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, search):
     # Separate the get calls because an ID lookup returns a dict and a name lookup
     # always returns an object/list structure with zero or more matching DCTs.
     if isname:
-        data_change_task = p.dataChanges_get(datachange_name=dct, limit=limit, offset=offset, search=search, type=type_)
+        data_change_task = p.dataChanges_get(datachange_name=dct, limit=limit, offset=offset, search=search, type_=type_)
 
         if data_change_task["total"] == 0:
             logger.warning("No data change task(s) found.")
