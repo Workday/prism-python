@@ -86,8 +86,6 @@ def cli(ctx,
 
                 base_url = param_fixup(base_url, config, config_name, "workday_base_url")
                 tenant_name = param_fixup(tenant_name, config, config_name, "workday_tenant_name")
-                username = param_fixup(username, config, config_name, "workday_username")
-                password = param_fixup(password, config, config_name, "workday_password")
                 client_id = param_fixup(client_id, config, config_name, "prism_client_id")
                 client_secret = param_fixup(client_secret, config, config_name, "prism_client_secret")
                 refresh_token = param_fixup(refresh_token, config, config_name, "prism_refresh_token")
