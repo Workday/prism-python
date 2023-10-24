@@ -16,9 +16,6 @@ logger = logging.getLogger('prismCLI')
               help="The offset to the first object in a collection to include in the response.")
 @click.option("-t", "--type", "type_", default="summary",
               help="How much information to be returned in response JSON (default=summary).")
-@click.option("-f", "--format", "format_", default="full",
-              help="Format output as full, summary, schema, or CSV.",
-              type=click.Choice(['full', 'summary', 'schema', 'csv'], case_sensitive=False))
 @click.option("-s", "--search", is_flag=True, default=False,
               help="Use contains search substring for --name or --id (default=false).")
 @click.argument("dct", required=False)
@@ -29,18 +26,6 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
     [dct] A reference to a Prism Analytics Data Change Task.
     """
     p = ctx.obj["p"]
-
-    def output_summary_dct(current_dct):
-        """Display the one-line summary version of a DCT."""
-        display_name = current_dct["displayName"]
-
-        source_name = current_dct["source"]["sourceType"]
-        source_name += ": " + current_dct["source"]["name"] if "name" in current_dct["source"] else ""
-
-        target_name = current_dct["target"]["name"]
-        operation = current_dct["operation"]["operationType"]["descriptor"]
-
-        logger.info(f"{display_name}, source: {source_name}, target: {target_name}, operation: {operation}")
 
     # Separate the get calls because an ID lookup returns a dict and a name lookup
     # always returns an object/list structure with zero or more matching DCTs.
@@ -62,25 +47,7 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
             logger.error(f'Data change task {dct} not found.')
             sys.exit(1)
 
-    if format_ == "summary":
-        if 'total' in data_change_task:
-            for dct_item in data_change_task["data"]:
-                output_summary_dct(dct_item)
-        else:
-            output_summary_dct(data_change_task)
-    elif format_ == "csv":
-        pass
-        #if 'data' in data_change_task:
-        #    df = pd.json_normalize(data_change_task["data"])
-        #else:
-        #    df = pd.json_normalize(data_change_task)
-
-        #logger.info(df.to_csv(index=False))
-    else:
-        if 'data' in data_change_task:
-            logger.info(json.dumps(data_change_task["data"], indent=2))
-        else:
-            logger.info(json.dumps(data_change_task, indent=2))
+    logger.info(json.dumps(data_change_task, indent=2))
 
 
 @click.command("validate")
