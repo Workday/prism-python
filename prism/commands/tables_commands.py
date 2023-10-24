@@ -243,7 +243,7 @@ def tables_patch(ctx, isname, table, file,
         resolved_id = table
     else:
         # Before doing anything, table name must exist.
-        tables = p.tables_get(name=table, limit=1, search=False)  # Exact match
+        tables = p.tables_get(table_name=table)  # Exact match
 
         if tables['total'] == 0:
             logger.error(f'Table name "{table}" not found.')
@@ -251,7 +251,7 @@ def tables_patch(ctx, isname, table, file,
 
         resolved_id = tables['data'][0]['id']
 
-    table = p.tables_patch(id=resolved_id, patch=patch_data)
+    table = p.tables_patch(table_id=resolved_id, patch=patch_data)
 
     if table is None:
         logger.error(f'Error updating table ID {resolved_id}')
