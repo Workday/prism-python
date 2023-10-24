@@ -198,7 +198,7 @@ def buckets_errorFile(ctx, isname, bucket):
     else:
         bucket_id = bucket
 
-    error_file = p.buckets_errorFile(bucket_id=buckets['data'][0]['id'])
+    error_file = p.buckets_errorFile(bucket_id=bucket_id)
 
     logger.info(error_file)
 
