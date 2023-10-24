@@ -1,12 +1,9 @@
 import json
 import logging
 import sys
-import os
-import csv
 import click
 
-from prism import schema_compact
-from prism import table_upload_file
+from prism import *
 
 logger = logging.getLogger('prismCLI')
 
@@ -22,9 +19,9 @@ logger = logging.getLogger('prismCLI')
               type=click.Choice(['summary', 'full', 'permissions'], case_sensitive=False),
               help='How much information returned for each table.')
 @click.option('-c', '--compact', is_flag=True, default=False,
-              help='Compact the table schema for use in edit operations.')
+              help='Compact the table schema for use in edit (put) operations.')
 @click.option('-s', '--search', is_flag=True,
-              help='Enable substring search of NAME in api name or display name, default=False (exact match).')
+              help='Enable substring search of NAME in api name or display name.')
 @click.argument('table', required=False)
 @click.pass_context
 def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
@@ -331,185 +328,3 @@ def tables_truncate(ctx, table, isname):
         sys.exit(1)
 
 
-def schema_from_csv(prism, file):
-    """Convert a CSV list of fields into a proper Prism schema JSON object"""
-
-    if not os.path.exists(file):
-        logger.error(f'FIle {file} not found - skipping.')
-        sys.exit(1)
-
-    schema = {'fields': []}  # Start with an empty schema definition.
-
-    with open(file, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-
-        # Force all the columns names (first row) from the CSV to lowercase to make
-        # lookups consistent regardless of the actual case of the columns.
-        reader.fieldnames = [f_name.lower() for f_name in reader.fieldnames]
-
-        # The minimum definition is a name column - exit if not found.  No other
-        # column definition is required to build a valid field list.
-        if 'name' not in reader.fieldnames:
-            logger.error(f'CSV file {file} does not contain a name column header in first line.')
-            sys.exit(1)
-
-        # Prism fields always have an ordinal sequence assigned to each field.
-        ordinal = 1
-
-        for row in reader:
-            if len(row['name']) == 0:
-                logger.error('Missing column name in CSV file.')
-                sys.exit(1)
-
-            # Start the new field definition with what we know so far.
-            field = {
-                'ordinal': ordinal,
-                'name': row['name'],
-                'displayName': row['displayname'] if 'displayname' in row else row['name']
-            }
-
-            # The following two columns are not required and may not be present.
-
-            if 'required' in row and isinstance(row['required'], str) and row['required'].lower() == 'true':
-                field['required'] = True
-            else:
-                field['required'] = False
-
-            if 'externalid' in row and isinstance(row['externalid'], str) and row['externalid'].lower() == 'true':
-                field['externalId'] = True
-            else:
-                field['externalId'] = False
-
-            fld_type = 'none'
-
-            prism_data_types = ['boolean', 'integer', 'text', 'date', 'long', 'decimal',
-                                'numeric', 'instance', 'currency', 'multi_instance']
-
-            if 'type' in row and row['type'].lower() in prism_data_types:
-                field['type'] = {'id': f'Schema_Field_Type={row["type"]}'}
-                fld_type = row['type'].lower()
-            else:
-                # Default all "un-typed" fields to text.
-                field['type'] = {'id': 'Schema_Field_Type=Text'}
-
-            if fld_type == 'date':
-                if 'parseformat' in row and isinstance(row['parseformat'], str) and len(row['parseformat']) > 0:
-                    field['parseFormat'] = row['parseformat']
-                else:
-                    field['parseFormat'] = 'yyyy-MM-dd'
-            elif fld_type == 'numeric':
-                if 'precision' in row:
-                    field['precision'] = row['precision']
-
-                    if 'scale' in row:
-                        field['scale'] = row['scale']
-            elif fld_type == 'instance':
-                # We need all the data sources to resolve the business objects
-                # to include their WID.
-                data_sources = prism.datasources_list()
-
-                if data_sources is None or data_sources['total'] == 0:
-                    click.echo('Error calling WQL/dataSources')
-                    return
-
-                # Find the matching businessObject
-                bo = [ds for ds in data_sources['data']
-                      if ds['businessObject']['descriptor'] == row['businessObject']]
-
-                if len(bo) == 1:
-                    field['businessObject'] = bo[0]['businessObject']
-
-            schema['fields'].append(field)
-            ordinal += 1
-
-    return schema
-
-
-def csv_from_fields(fields):
-    """Convert a Prism field list to CSV representation."""
-
-    format_str = '{name},"{displayName}",{ordinal},{type},"{businessObject}",'
-    format_str += '{precision},{scale},"{parseFormat}",{required},{externalId}\n'
-
-    # Start with the CSV column headings.
-    csv_str = 'name,displayName,ordinal,type,businessObject,precision,scale,parseFormat,required,externalId\n'
-
-    for field in fields:
-        # Suppress the Prism audit columns.
-        if field['name'].startswith('WPA_'):
-            continue
-
-        field_def = {'name': field['name'],
-                     'displayName': field['displayName'],
-                     'ordinal': field['ordinal'],
-                     'type': field['type']['descriptor'],
-                     'businessObject': field['businessObject']['descriptor'] if 'businessObject' in field else '',
-                     'precision': field['precision'] if 'precision' in field else '',
-                     'scale': field['scale'] if 'scale' in field else '',
-                     'parseFormat': field['parseFormat'] if 'parseFormat' in field else '',
-                     'required': field['required'],
-                     'externalId': field['externalId']
-                     }
-
-        # Add the new field to the CSV text.
-        csv_str += format_str.format_map(field_def)
-
-    return csv_str
-
-
-def resolve_schema(p=None, file=None, source_name=None, source_id=None):
-    """Get or extract a schema from a file or existing Prism table."""
-
-    # Start with a blank schema definition.
-    schema = {}
-
-    # A file always takes precedence over sourceName and sourceWID
-    # options, and must BE, or contain a valid schema.
-
-    if file is not None:
-        if file.lower().endswith('.json'):
-            try:
-                with open(file) as json_file:
-                    schema = json.load(json_file)
-            except Exception as e:
-                logger.error(f'Invalid schema file: {e}.')
-                sys.exit(1)
-
-            # The JSON file could be a complete table definitions (GET:/tables - full) or just
-            # the list of fields.  If we got a list, then we have a list of fields we
-            # use to start the schema definition.
-
-            if isinstance(schema, list):
-                schema['fields'] = schema
-            else:
-                # This should be a full schema, perhaps from a table list command.
-                if 'name' not in schema and 'fields' not in schema:
-                    logger.error('Invalid schema - name and fields attribute not found.')
-                    sys.exit(1)
-        elif file.lower().endswith('.csv'):
-            schema = schema_from_csv(p, file)
-        else:
-            logger.error('Invalid file extension - valid extensions are .json or .csv.')
-            sys.exit(1)
-    else:
-        # No file was specified, check for a Prism source table.
-        if source_name is None and source_id is None:
-            logger.error('No schema file provided and a table (--sourceName or --sourceId) not specified.')
-            sys.exit(1)
-
-        if source_id is not None:
-            schema = p.tables_list(id=source_id, type_='full')  # Exact match on WID - and get the fields (full)
-
-            if schema is None:
-                logger.error(f'Invalid --sourceId {source_id} : table not found.')
-                sys.exit(1)
-        else:
-            tables = p.tables_list(name=source_name, type_='full')  # Exact match on API Name
-
-            if tables['total'] == 0:
-                logger.error(f'Invalid --sourceName {source_name} : table not found.')
-                sys.exit(1)
-
-            schema = tables['data'][0]
-
-    return schema

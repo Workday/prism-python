@@ -14,7 +14,7 @@ import time
 import os
 import sys
 import uuid
-import io
+import csv
 import gzip
 import inspect
 import copy
@@ -1495,3 +1495,57 @@ def table_upload_file(p, file, table_id=None, table_name=None, operation="Trunca
         return results
     else:
         return file_results
+
+
+def resolve_schema(p=None, file=None, source_name=None, source_id=None):
+    """Get or extract a schema from a file or existing Prism table."""
+
+    # Start with a blank schema definition.
+    schema = {}
+
+    # A file always takes precedence over sourceName and sourceWID
+    # options, and must BE a valid schema.
+
+    if file is not None:
+        if not os.path.isfile(file):
+            logger.error('File not found.')
+            return None
+
+        # We can expect either a JSON file or a CSV file.
+        try:
+            with open(file) as json_file:
+                schema = json.load(json_file)
+
+            if isinstance(schema, list):
+                # Convert a list of fields into a basic schema.
+                schema['fields'] = schema
+            else:
+                # This should be a full schema, perhaps from a table list command.
+                if 'name' not in schema and 'fields' not in schema:
+                    logger.error('Invalid schema - name and fields attribute not found.')
+                    return None
+        except Exception as e:
+            logger.error(e)
+            return None
+    else:
+        # No file was specified, check for a Prism source table.
+        if source_name is None and source_id is None:
+            logger.error('No schema file provided and a table (--sourceName or --sourceId) not specified.')
+            return None
+
+        if source_id is not None:
+            schema = p.tables_list(id=source_id, type_='full')  # Exact match on WID - and get the fields (full)
+
+            if schema is None:
+                logger.error(f'Invalid --sourceId {source_id} : table not found.')
+                return None
+        else:
+            tables = p.tables_list(name=source_name, type_='full')  # Exact match on API Name
+
+            if tables['total'] == 0:
+                logger.error(f'Invalid --sourceName {source_name} : table not found.')
+                return None
+
+            schema = tables['data'][0]
+
+    return schema
