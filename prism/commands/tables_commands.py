@@ -287,9 +287,9 @@ def tables_upload(ctx, table, isname, operation, file):
         sys.exit(1)
 
     if isname:
-        results = upload_file(p, table_name=table, operation=operation)
+        results = upload_file(p, table_name=table, file=file, operation=operation)
     else:
-        results = upload_file(p, table_id=table, operation=operation)
+        results = upload_file(p, table_id=table, file=file, operation=operation)
 
     logger.debug(json.dumps(results, indent=2))
 
