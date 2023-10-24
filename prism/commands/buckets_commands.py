@@ -30,11 +30,11 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
     NOTE: For table name searching, the Display Name is searched not
     the API Name.
     """
-
     p = ctx.obj["p"]
 
     if isname and bucket is None and table is None:
-        # It's invalid to add the --isName switch without providing a bucket id or table name.
+        # It's invalid to add the --isName switch without providing
+        # a bucket id or table name.
         logger.error('To get buckets by name, please provide a bucket name.')
         sys.exit(1)
 
@@ -71,21 +71,22 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
               help="Schema JSON file for the target table.")
 @click.option("-o", "--operation", default="TruncateAndInsert", show_default=True,
               help="Operation to perform on the table.")
-@click.argument("name", required=False)
+@click.argument("bucket", required=False)
 @click.pass_context
-def buckets_create(ctx, target_name, target_id, file, operation, name):
+def buckets_create(ctx, target_name, target_id, file, operation, bucket):
     """
     Create a new bucket with the specified name.
 
-    [NAME] explicit bucket name to create otherwise default.
+    [BUCKET] explicit bucket name to create otherwise default.
     """
     p = ctx.obj["p"]
 
     if target_name is None and target_id is None and file is None:
-        logger.error("A table must be associated with this bucket (-n, -i, or -f must be specified).")
+        logger.error("A table must be associated with this bucket.")
         sys.exit(1)
 
-    bucket = p.buckets_create(bucket_name=name, target_id=target_id, target_name=target_name,
+    bucket = p.buckets_create(bucket_name=bucket,
+                              target_id=target_id, target_name=target_name,
                               schema=file, operation=operation)
 
     if bucket is not None:
@@ -157,7 +158,6 @@ def buckets_complete(ctx, isname, bucket):
         else:
             bucket = buckets["data"][0]
     else:
-        # If the caller passed both a name and WID, then use the WID first.
         bucket = p.buckets_list(bucket_id=bucket)
 
     if bucket is None:
@@ -166,8 +166,8 @@ def buckets_complete(ctx, isname, bucket):
 
     bucket_state = bucket["state"]["descriptor"]
 
-    if bucket_state != "New":
-        logger.error(f"Bucket state is \"{bucket_state}\" - only \"New.\" buckets can be completed.")
+    if bucket_state != 'New':
+        logger.error(f'Bucket state is "{bucket_state}" - only "New" buckets can be completed.')
         sys.exit(1)
 
     logger.info(p.buckets_complete(bucket["id"]))

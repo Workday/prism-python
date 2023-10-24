@@ -1150,7 +1150,7 @@ class Prism:
 
         return data_changes
 
-    def dataChanges_activities_get(self, id, activityID):
+    def dataChanges_activities_get(self, datachange_id, activity_id):
         """Returns details of the activity specified by activityID.
 
         Parameters
@@ -1158,7 +1158,7 @@ class Prism:
         id : str
              A reference to a Prism Analytics data change.
         """
-        operation = f"/dataChanges/{id}/activities/{activityID}"
+        operation = f"/dataChanges/{datachange_id}/activities/{activity_id}"
         logger.debug(f"dataChanges_activities_get: {operation}")
         url = self.prism_endpoint + operation
 
@@ -1169,31 +1169,31 @@ class Prism:
 
         return None
 
-    def dataChanges_activities_post(self, id, fileContainerID=None):
+    def dataChanges_activities_post(self, datachange_id, filecontainer_id=None):
         """Execute a data change task.
 
         Parameters
         ----------
-        id : str
+        datachange_id : str
              A reference to a Prism Analytics data change.
-        fileContainerID : str
+        filecontainer_id : str
             A reference to a Prism Analytics File Container.
 
         Returns
         -------
         """
-        operation = f"/dataChanges/{id}/activities"
+        operation = f"/dataChanges/{datachange_id}/activities"
         logger.debug(f"post: {operation}")
         url = self.prism_endpoint + operation
 
-        if fileContainerID is None:
+        if filecontainer_id is None:
             logger.debug("no file container ID")
             data = None
         else:
-            logger.debug('with file container ID: {fileContainerID}')
+            logger.debug('with file container ID: {filecontainer_id}')
 
             # NOTE: the name is NOT correct based on the API definition
-            data = json.dumps({"fileContainerWid": fileContainerID})
+            data = json.dumps({"fileContainerWid": filecontainer_id})
 
         r = self.http_post(url, headers=self.CONTENT_APP_JSON, data=data)
 
@@ -1209,12 +1209,12 @@ class Prism:
 
         return None
 
-    def dataChanges_is_valid(self, id):
+    def dataChanges_is_valid(self, datachange_id):
         """Utility method to return the validation status of a data change task.
 
         Parameters
         ----------
-        id : str
+        datachange_id : str
              A reference to a Prism Analytics data change.
 
         Returns
@@ -1226,29 +1226,29 @@ class Prism:
         dct = self.dataChanges_validate(id)
 
         if dct is None:
-            logger.error(f"data_change_id {id} not found!")
+            logger.error(f"data_change_id {datachange_id} not found!")
             return False
 
         if "error" in dct:
-            logger.error(f"data_change_id {id} is not valid!")
+            logger.error(f"data_change_id {datachange_id} is not valid!")
             return False
 
         # There is no specific status value to check, we simply get
         # a small JSON object with the ID of the DCT if it is valid.
         return True
 
-    def dataChanges_validate(self, id):
+    def dataChanges_validate(self, datachange_id):
         """validates the data change specified by dataChangeID
 
         Parameters
         ----------
-        id : str
+        datachange_id : str
             The data change task ID to validate.
 
         Returns
         -------
         """
-        operation = f"/dataChanges/{id}/validate"
+        operation = f"/dataChanges/{datachange_id}/validate"
         logger.debug(f"dataChanges_validate: get {operation}")
         url = self.prism_endpoint + operation
 
@@ -1288,14 +1288,14 @@ class Prism:
         if r.status_code == 201:
             return_json = r.json()
 
-            file_container_id = return_json["id"]
-            logger.debug(f"successfully created file container: {file_container_id}")
+            filecontainer_id = return_json["id"]
+            logger.debug(f"successfully created file container: {filecontainer_id}")
 
             return return_json
 
         return None
 
-    def fileContainers_get(self, id):
+    def fileContainers_get(self, filecontainer_id):
         """Return all files for a file container.
 
         Parameters
@@ -1309,7 +1309,7 @@ class Prism:
             of files uploaded and a data attribute with an array of file metadata
             for each file in the container.
         """
-        operation = f"/fileContainers/{id}/files"
+        operation = f"/fileContainers/{filecontainer_id}/files"
         logger.debug(f"fileContainers_list: get {operation}")
         url = self.prism_endpoint + operation
 
@@ -1325,13 +1325,13 @@ class Prism:
 
         return {"total": 0, 'data': []}  # Always return a list.
 
-    def fileContainers_load(self, id, file):
+    def fileContainers_load(self, filecontainer_id, file):
         """
         Load one or more files to a fileContainer.
 
         Parameters
         ----------
-        id : str
+        filecontainer_id : str
             File container ID of target container.
         file : str|list
             File name(s) to load into the container

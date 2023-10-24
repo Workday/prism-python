@@ -20,7 +20,7 @@ logger = logging.getLogger('prismCLI')
               help="Use contains search substring for --name or --id (default=false).")
 @click.argument("dct", required=False)
 @click.pass_context
-def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
+def dataChanges_get(ctx, isname, dct, limit, offset, type_, search):
     """View the data change tasks permitted by the security profile of the current user.
 
     [dct] A reference to a Prism Analytics Data Change Task.
@@ -30,7 +30,7 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
     # Separate the get calls because an ID lookup returns a dict and a name lookup
     # always returns an object/list structure with zero or more matching DCTs.
     if isname:
-        data_change_task = p.dataChanges_get(name=dct, limit=limit, offset=offset, search=search, type=type_)
+        data_change_task = p.dataChanges_get(datachange_name=dct, limit=limit, offset=offset, search=search, type=type_)
 
         if data_change_task["total"] == 0:
             logger.warning("No data change task(s) found.")
@@ -41,7 +41,7 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
                                       data_change_task["data"],
                                       key=lambda dct_srt: dct_srt["displayName"].lower())
     else:
-        data_change_task = p.dataChanges_get(id=dct, limit=limit, offset=offset, type_=type_)
+        data_change_task = p.dataChanges_get(datachange_id=dct, limit=limit, offset=offset, type_=type_)
 
         if data_change_task is None:
             logger.error(f'Data change task {dct} not found.')
@@ -192,7 +192,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
     p = ctx.obj["p"]
 
     if isname:
-        data_change_tasks = p.dataChanges_get(name=dct)
+        data_change_tasks = p.dataChanges_get(datachange_name=dct)
 
         if data_change_tasks['total'] == 0:
             logger.error('Data change task not found.')
@@ -204,17 +204,17 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
         dct_id = dct
 
     # Specifying None for the ID to create a new file container.
-    file_container = p.fileContainers_load(id=None, file=file)
+    file_container = p.fileContainers_load(filecontainer_id=None, file=file)
 
     if file_container['total'] == 0:
         logger.error('Error loading file container.')
         sys.exit(1)
 
-    fid = file_container['id']
-    logger.debug(f'new file container ID: {fid}')
+    filecontainer_id = file_container['id']
+    logger.debug(f'new file container ID: {filecontainer_id}')
 
     # Execute the DCT.
-    activity = p.dataChanges_activities_post(id=dct_id, fileContainerID=fid)
+    activity = p.dataChanges_activities_post(datachange_id=dct_id, fileContainer_id=filecontainer_id)
 
     if 'errors' in activity:
         # Add the ID of the DCT for easy identification.
@@ -232,7 +232,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
         while True:
             time.sleep(10)
 
-            activity = p.dataChanges_activities_get(id=dct_id, activityID=activity_id)
+            activity = p.dataChanges_activities_get(datachange_id=dct_id, activityID=activity_id)
 
             status = activity['state']['descriptor']
 
