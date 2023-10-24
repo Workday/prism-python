@@ -21,14 +21,13 @@ logger = logging.getLogger('prismCLI')
               help="The id or name of a Prism table to list all buckets.")
 @click.argument("bucket", required=False)
 @click.pass_context
-def buckets_get(ctx, bucket, table, isname,
-                limit, offset, type_, search):
+def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
     """
     View the buckets permitted by the security profile of the current user.
 
     [BUCKET] ID or name of a Prism bucket.
 
-    NOTE: For table name searching, this will be the Display Name not
+    NOTE: For table name searching, the Display Name is searched not
     the API Name.
     """
 
@@ -60,10 +59,7 @@ def buckets_get(ctx, bucket, table, isname,
             buckets = p.buckets_get(table_id=table,
                                     limit=limit, offset=offset, type_=type_)
 
-    if buckets['total'] == 0:
-        logger.info('No buckets found.')
-    else:
-        logger.info(json.dumps(buckets, indent=2))
+    logger.info(json.dumps(buckets, indent=2))
 
 
 @click.command("create")
@@ -71,13 +67,13 @@ def buckets_get(ctx, bucket, table, isname,
               help="Table name to associate with the bucket.")
 @click.option("-i", "--target_id", default=None,
               help="Table ID to associate with the table.")
-@click.option("-f", "--file", "file_", required=False, default=None, type=click.Path(exists=True),
+@click.option("-f", "--file", "file", required=False, default=None, type=click.Path(exists=True),
               help="Schema JSON file for the target table.")
 @click.option("-o", "--operation", default="TruncateAndInsert", show_default=True,
               help="Operation to perform on the table.")
 @click.argument("name", required=False)
 @click.pass_context
-def buckets_create(ctx, target_name, target_id, file_, operation, name):
+def buckets_create(ctx, target_name, target_id, file, operation, name):
     """
     Create a new bucket with the specified name.
 
@@ -85,16 +81,17 @@ def buckets_create(ctx, target_name, target_id, file_, operation, name):
     """
     p = ctx.obj["p"]
 
-    if target_name is None and target_id is None and file_ is None:
+    if target_name is None and target_id is None and file is None:
         logger.error("A table must be associated with this bucket (-n, -i, or -f must be specified).")
         sys.exit(1)
 
     bucket = p.buckets_create(name=name, target_id=target_id, target_name=target_name,
-                              schema=file_, operation=operation)
+                              schema=file, operation=operation)
 
     if bucket is not None:
         logger.info(json.dumps(bucket, indent=2))
     else:
+        logger.error('Error creating bucket.')
         sys.exit(1)
 
 
@@ -140,78 +137,78 @@ def buckets_files(ctx, target_name, target_id, file, operation, bucket, complete
 
 
 @click.command("complete")
-@click.option("-n", "name",
-              help="Bucket name to complete.")
-@click.argument("id", required=False)
+@click.option('-n', '--isName', is_flag=True, default=False,
+              help='Flag to treat the bucket argument as a name.')
+@click.argument("bucket", required=True)
 @click.pass_context
-def buckets_complete(ctx, name, id):
+def buckets_complete(ctx, isname, bucket):
     """
     Complete the specified bucket and perform the specified operation.
 
-    [ID] A reference to a Prism Analytics bucket.
+    [BUCKET] A reference to a Prism Analytics bucket.
     """
     p = ctx.obj["p"]
 
-    if id is None and name is None:
-        click.echo("A bucket wid or a bucket name must be specified.")
-        sys.exit(1)
-
-    if id is not None:
-        # If the caller passed both a name and WID, then use the WID first.
-        bucket = p.buckets_list(bucket_id=id)
-    else:
-        # Lookup the bucket by name.
-        buckets = p.buckets_list(bucket=name, verbosity="full")
+    if isname:
+        buckets = p.buckets_list(bucket=bucket, verbosity="full")
 
         if buckets["total"] == 0:
-            logger.error('Bucket not found.')
-            sys.exit(1)
+            bucket = None
+        else:
+            bucket = buckets["data"][0]
+    else:
+        # If the caller passed both a name and WID, then use the WID first.
+        bucket = p.buckets_list(bucket_id=id)
 
-        bucket = buckets["data"][0]
+    if bucket is None:
+        logger.error(f'Bucket {bucket} not found.')
+        sys.exit(1)
 
     bucket_state = bucket["state"]["descriptor"]
 
     if bucket_state != "New":
-        click.echo(f"Bucket state is \"{bucket_state}\" - only \"New.\" buckets can be completed.")
+        logger.error(f"Bucket state is \"{bucket_state}\" - only \"New.\" buckets can be completed.")
         sys.exit(1)
 
-    click.echo(p.buckets_complete(bucket["id"]))
+    logger.info(p.buckets_complete(bucket["id"]))
 
 
 @click.command("errorFile")
-@click.option("-n", "name",
-              help="Bucket name.")
-@click.argument("id", required=False)
+@click.option('-n', '--isName', is_flag=True, default=False,
+              help='Flag to treat the bucket argument as a name.')
+@click.argument("bucket", required=True)
 @click.pass_context
-def buckets_errorFile(ctx, name, id):
+def buckets_errorFile(ctx, isname, bucket):
     """
     Return the error file for a bucket.
 
-    [ID] A reference to a Prism Analytics bucket.
+    [BUCKET] A reference to a Prism Analytics bucket.
     """
     p = ctx.obj["p"]
 
-    if id is not None:
-        # If the caller passed both a name and WID, then use the WID first.
-        error_file = p.buckets_errorFile(id=id)
-    else:
+    if isname:
         # Lookup the bucket by name.
-        buckets = p.buckets_get(name=name)
+        buckets = p.buckets_get(name=bucket)
 
         if buckets["total"] == 0:
-            logger.error('Bucket not found.')
+            logger.error(f'Bucket {bucket} not found.')
             sys.exit(1)
+        else:
+            bucket_id = buckets['data'][0]['id']
+    else:
+        bucket_id = bucket
 
-        error_file = p.buckets_errorFile(id=buckets['data'][0]['id'])
+    error_file = p.buckets_errorFile(id=buckets['data'][0]['id'])
 
     logger.info(error_file)
 
 
 @click.command("status")
-@click.option("-n", "--name", required=False, help="Bucket name to status")
-@click.argument("id", required=False)
+@click.option("-n", "--isName", is_flag=True, default=False,
+              help="Bucket name to status")
+@click.argument("bucket", required=True)
 @click.pass_context
-def buckets_status(ctx, name, id):
+def buckets_status(ctx, isname, bucket):
     """
     Get the status of a bucket by ID or name.
 
@@ -219,24 +216,20 @@ def buckets_status(ctx, name, id):
     """
     p = ctx.obj["p"]
 
-    if id is None and name is None:
-        logger.error('Please specify the ID or name of a bucket.')
-        sys.exit(1)
-
-    if id is not None:
-        bucket = p.buckets_get(id)
-
-        if bucket is None:
-            logger.error(f'Bucket {id} not found.')
-            sys.exit(1)
-    else:
-        buckets = p.buckets_get(id, name=name)
+    if isname:
+        buckets = p.buckets_get(id, name=bucket)
 
         if buckets["total"] == 0:
-            logger.error(f'Bucket name {name} not found.')
+            logger.error(f'Bucket name {bucket} not found.')
             sys.exit(1)
 
         bucket = buckets['data'][0]
+    else:
+        bucket = p.buckets_get(id)
+
+    if bucket is None:
+        logger.error(f'Bucket {bucket} not found.')
+        sys.exit(1)
 
     logger.info(bucket["state"]["descriptor"])
 
