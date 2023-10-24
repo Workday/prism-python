@@ -71,7 +71,7 @@ def dataChanges_validate(ctx, isname, dct, search):
         validate = p.dataChanges_validate(dct)
         logger.info(json.dumps(validate, indent=2))
     else:
-        data_change_tasks = p.dataChanges_get(name=dct, search=search)
+        data_change_tasks = p.dataChanges_get(datachange_name=dct, search=search)
 
         if data_change_tasks["total"] == 0:
             logger.error("No matching data change task(s) found.")
