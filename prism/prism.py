@@ -101,33 +101,31 @@ def schema_compact(schema):
         logger.error("schema_compact: schema is not a dictionary.")
         return None
 
-    if 'fields' not in schema or not isinstance(schema['fields'], list):
-        logger.error("schema_compact: fields attribute missing from schema!")
-        return None
-
     compact_schema = copy.deepcopy(schema)
 
-    # Remove Prism managed fields "WPA_*"
-    compact_schema['fields'] = [fld for fld in compact_schema['fields']
-                                if not fld['name'].startswith('WPA_')]
-
     # Add a sequential order (ordinal) on the fields to (en)force
-    # required sequencing of fields.
-    for ordinal in range(len(compact_schema["fields"])):
-        fld = schema["fields"][ordinal]
-        fld["ordinal"] = ordinal + 1
+    # required sequencing of fields.  Note: for summary tables
+    # there will not be a fields attribute.
+    if 'fields' in compact_schema:
+        # Remove Prism managed fields "WPA_*"
+        compact_schema['fields'] = [fld for fld in compact_schema['fields']
+                                    if not fld['name'].startswith('WPA_')]
 
-        if 'fieldId' in fld:
-            del fld['fieldId']
+        for ordinal in range(len(compact_schema["fields"])):
+            fld = schema["fields"][ordinal]
+            fld["ordinal"] = ordinal + 1
 
-        if 'id' in fld:
-            del fld['id']
+            if 'fieldId' in fld:
+                del fld['fieldId']
 
-        if 'type' in fld:
-            if 'descriptor' in fld['type']:
-                # Convert the descriptor to the shortened Prism type syntax.
-                fld['type']['id'] = f"Schema_Field_Type={fld['type']['descriptor']}"
-                del fld['type']['descriptor']
+            if 'id' in fld:
+                del fld['id']
+
+            if 'type' in fld:
+                if 'descriptor' in fld['type']:
+                    # Convert the descriptor to the shortened Prism type syntax.
+                    fld['type']['id'] = f"Schema_Field_Type={fld['type']['descriptor']}"
+                    del fld['type']['descriptor']
 
     # Remove all attributes from the schema that cannot be specified on
     # a post or put operation.
