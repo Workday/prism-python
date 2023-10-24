@@ -805,7 +805,7 @@ class Prism:
 
     def buckets_create(
             self,
-            name=None,
+            bucket_name=None,
             target_name=None,
             target_id=None,
             schema=None,
@@ -826,7 +826,7 @@ class Prism:
 
         Parameters
         ----------
-        name : str
+        bucket_name : str
             Name of the bucket to create, default to a new generated name.
         target_id : str
             The ID of the table for this bucket.
@@ -845,10 +845,10 @@ class Prism:
 
         # If the caller didn't give us a name to use for the bucket,
         # create a default name.
-        if name is None:
+        if bucket_name is None:
             bucket_name = buckets_gen_name()
         else:
-            bucket_name = name
+            bucket_name = bucket_name
 
         table_schema = None
         bucket_schema = None
@@ -931,13 +931,13 @@ class Prism:
 
         return None
 
-    def buckets_complete(self, id):
+    def buckets_complete(self, bucket_id):
         """
         Commit the data contained in the bucket to the associated table.
 
         Parameters
         ----------
-        id : str
+        bucket_id : str
             The ID of an existing bucket with a "New" status.
 
         Returns
@@ -945,14 +945,14 @@ class Prism:
         dict
             Information about the completed bucket, or None if there was a problem.
         """
-        operation = f'/buckets/{id}/complete'
+        operation = f'/buckets/{bucket_id}/complete'
         logger.debug(f'post: {operation}')
         url = self.prism_endpoint + operation
 
         r = self.http_post(url)
 
         if r.status_code == 201:
-            logger.debug(f'successfully completed wBucket {id}.')
+            logger.debug(f'successfully completed wBucket {bucket_id}.')
             return r.json()
         elif r.status_code == 400:
             logger.debug(f'error completing bucket')
@@ -960,7 +960,7 @@ class Prism:
 
         return None
 
-    def buckets_files(self, id, file=None):
+    def buckets_files(self, bucket_id, file=None):
         """Upload a file to a given bucket.
 
         Notes
@@ -973,7 +973,7 @@ class Prism:
 
         Parameters
         ----------
-        id : str
+        bucket_id : str
             Upload the file to the bucket identified by ID.
 
         file : str | list(str)
@@ -986,7 +986,7 @@ class Prism:
             multiple files, an array of upload information with information for
             each file.
         """
-        operation = f"/buckets/{id}/files"
+        operation = f"/buckets/{bucket_id}/files"
         logger.debug("post: {operation}")
         url = self.prism_endpoint + operation
 
@@ -1022,12 +1022,12 @@ class Prism:
         results['total'] = len(results['data'])
         return results
 
-    def buckets_errorFile(self, id):
+    def buckets_errorFile(self, bucket_id):
         """Get a list of all rows that failed to load into the table
 
         Parameters
         ----------
-        id : str
+        bucket_id : str
              A reference to a Prism Analytics bucket.
 
         Returns
@@ -1035,11 +1035,11 @@ class Prism:
         str
         """
 
-        if id is None:
+        if bucket_id is None:
             logger.error('bucket id is required.')
             return None
 
-        operation = f"/buckets/{id}/errorFile"
+        operation = f"/buckets/{bucket_id}/errorFile"
         logger.debug("post: {operation}")
         url = self.prism_endpoint + operation
 

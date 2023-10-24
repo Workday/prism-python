@@ -34,7 +34,7 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
     p = ctx.obj["p"]
 
     if isname and bucket is None and table is None:
-        # It's invalid to add the --isName switch without providing a bucket name.
+        # It's invalid to add the --isName switch without providing a bucket id or table name.
         logger.error('To get buckets by name, please provide a bucket name.')
         sys.exit(1)
 
@@ -85,7 +85,7 @@ def buckets_create(ctx, target_name, target_id, file, operation, name):
         logger.error("A table must be associated with this bucket (-n, -i, or -f must be specified).")
         sys.exit(1)
 
-    bucket = p.buckets_create(name=name, target_id=target_id, target_name=target_name,
+    bucket = p.buckets_create(bucket_name=name, target_id=target_id, target_name=target_name,
                               schema=file, operation=operation)
 
     if bucket is not None:
@@ -150,7 +150,7 @@ def buckets_complete(ctx, isname, bucket):
     p = ctx.obj["p"]
 
     if isname:
-        buckets = p.buckets_list(bucket=bucket, verbosity="full")
+        buckets = p.buckets_get(bucket_name=bucket, verbosity="full")
 
         if buckets["total"] == 0:
             bucket = None
@@ -158,7 +158,7 @@ def buckets_complete(ctx, isname, bucket):
             bucket = buckets["data"][0]
     else:
         # If the caller passed both a name and WID, then use the WID first.
-        bucket = p.buckets_list(bucket_id=id)
+        bucket = p.buckets_list(bucket_id=bucket)
 
     if bucket is None:
         logger.error(f'Bucket {bucket} not found.')
@@ -188,7 +188,7 @@ def buckets_errorFile(ctx, isname, bucket):
 
     if isname:
         # Lookup the bucket by name.
-        buckets = p.buckets_get(name=bucket)
+        buckets = p.buckets_get(bucket_name=bucket)
 
         if buckets["total"] == 0:
             logger.error(f'Bucket {bucket} not found.')
@@ -198,7 +198,7 @@ def buckets_errorFile(ctx, isname, bucket):
     else:
         bucket_id = bucket
 
-    error_file = p.buckets_errorFile(id=buckets['data'][0]['id'])
+    error_file = p.buckets_errorFile(bucket_id=buckets['data'][0]['id'])
 
     logger.info(error_file)
 
@@ -217,7 +217,7 @@ def buckets_status(ctx, isname, bucket):
     p = ctx.obj["p"]
 
     if isname:
-        buckets = p.buckets_get(id, name=bucket)
+        buckets = p.buckets_get(bucket_name=bucket)
 
         if buckets["total"] == 0:
             logger.error(f'Bucket name {bucket} not found.')
@@ -225,7 +225,7 @@ def buckets_status(ctx, isname, bucket):
 
         bucket = buckets['data'][0]
     else:
-        bucket = p.buckets_get(id)
+        bucket = p.buckets_get(bucket_id=bucket)
 
     if bucket is None:
         logger.error(f'Bucket {bucket} not found.')
