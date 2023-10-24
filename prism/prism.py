@@ -14,7 +14,6 @@ import time
 import os
 import sys
 import uuid
-import csv
 import gzip
 import inspect
 import copy
@@ -672,16 +671,16 @@ class Prism:
         return None
 
     def buckets_get(self,
-                    id=None, name=None, search=False,
+                    bucket_id=None, bucket_name=None, search=False,
                     limit=None, offset=None, type_="summary",
                     table_id=None, table_name=None):
         """Get a one or more bucket definitions.
 
         Parameters
         ----------
-        id : str
+        bucket_id : str
             The ID of an existing bucket.
-        name : str
+        bucket_name : str
             The name of an existing bucket.
         limit : int
             The maximum number of tables to be queried, if None all tables are returned.
@@ -710,7 +709,7 @@ class Prism:
         # If we got an ID, then do a direct query by ID - no paging or
         # searching required.
         if id is not None:
-            operation = f"{operation}/{id}?format={output_type}"
+            operation = f"{operation}/{bucket_id}?format={output_type}"
             logger.debug(f"get: {operation}")
             url = self.prism_endpoint + operation
 
@@ -734,10 +733,10 @@ class Prism:
             'type': output_type
         }
 
-        if not search and name is not None:
+        if not search and bucket_name is not None:
             # List a specific bucket name overrides any other
             # combination of search/table/bucket name/wid.
-            params['name'] = urlparse.quote(name)
+            params['name'] = urlparse.quote(bucket_name)
 
             params['limit'] = 1  # Can ONLY be one matching bucket.
             params['offset'] = 0
@@ -758,16 +757,16 @@ class Prism:
 
             buckets = r.json()
 
-            if not search and name is not None:  # exact bucket name
+            if not search and bucket_name is not None:  # exact bucket name
                 # We are not searching, and we have a specific bucket,
                 # return whatever we got with this call even if no buckets
                 # were found (it will be in the necessary dict structure).
                 return buckets
 
-            if name is not None:  # We are searching at this point.
+            if bucket_name is not None:  # We are searching at this point.
                 # Substring search for matching table names
                 match_buckets = [bck for bck in buckets["data"] if
-                                 name in bck["name"] or name in bck["displayName"]]
+                                 bucket_name in bck["name"] or bucket_name in bck["displayName"]]
             elif table_id is not None:
                 match_buckets = [
                     bck for bck in buckets["data"]

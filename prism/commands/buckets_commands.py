@@ -40,7 +40,7 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
 
     if not isname and bucket is not None:
         # This should be a bucket ID - ignore all other options.
-        bucket = p.buckets_get(id=bucket, type_=type_)
+        bucket = p.buckets_get(bucket_id=bucket, type_=type_)
         logger.info(json.dumps(bucket, indent=2))
 
         return
@@ -49,7 +49,7 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
 
     if isname and bucket is not None:
         # This should be a search by bucket name.
-        buckets = p.buckets_get(name=bucket, type_=type_, search=search)
+        buckets = p.buckets_get(bucket_name=bucket, type_=type_, search=search)
     else:
         # Search by table ID or name.
         if isname:
