@@ -17,6 +17,7 @@ import uuid
 import io
 import gzip
 import inspect
+import copy
 
 from urllib import parse as urlparse
 
@@ -89,27 +90,30 @@ def buckets_gen_name():
     return bucket_name
 
 
-def schema_fixup(schema):
+def schema_compact(schema):
     """Utility function to revise a schema for a bucket operations."""
 
     if schema is None:
         logger.error("schema_fixup: schema cannot be None.")
-        return False
+        return None
 
     if not isinstance(schema, dict):
         logger.error("schema_fixup: schema is not a dictionary.")
-        return False
+        return None
 
     if 'fields' not in schema or not isinstance(schema['fields'], list):
         logger.error("fields attribute missing from schema!")
-        return False
+        return None
+
+    compact_schema = copy.deepcopy(schema)
 
     # Remove Prism managed fields "WPA_*"
-    schema['fields'] = [fld for fld in schema['fields'] if not fld['name'].startswith('WPA_')]
+    compact_schema['fields'] = [fld for fld in compact_schema['fields']
+                                if not fld['name'].startswith('WPA_')]
 
     # Add a sequential order (ordinal) on the fields to (en)force
     # required sequencing of fields.
-    for ordinal in range(len(schema["fields"])):
+    for ordinal in range(len(compact_schema["fields"])):
         fld = schema["fields"][ordinal]
         fld["ordinal"] = ordinal + 1
 
@@ -127,15 +131,15 @@ def schema_fixup(schema):
 
     # Remove all attributes from the schema that cannot be specified on
     # a post or put operation.
-    keys = list(schema.keys())
+    keys = list(compact_schema.keys())
 
     for k in keys:
         if k not in ['name', 'id', 'fields', 'tags', 'categories',
                      'displayName', 'description', 'documentation',
                      'enableForAnalysis']:
-            del schema[k]
+            del compact_schema[k]
 
-    return True
+    return compact_schema
 
 
 def table_to_bucket_schema(table):

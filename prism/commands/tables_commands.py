@@ -5,7 +5,7 @@ import os
 import csv
 import click
 
-from prism import schema_fixup
+from prism import schema_compact
 
 logger = logging.getLogger('prismCLI')
 
@@ -20,30 +20,24 @@ logger = logging.getLogger('prismCLI')
 @click.option('-t', '--type', 'type_', default='summary',
               type=click.Choice(['summary', 'full', 'permissions'], case_sensitive=False),
               help='How much information returned for each table.')
-@click.option('-f', '--format', 'format_', default='json',
-              type=click.Choice(['json', 'tabular', 'schema'], case_sensitive=False),
-              help='Format output as JSON, tabular, or simplified table schema.')
+@click.option('-c', '--compact', is_flag=True, default=False,
+              help='Compact the table schema for use in edit operations.')
 @click.option('-s', '--search', is_flag=True,
               help='Enable substring search of NAME in api name or display name, default=False (exact match).')
 @click.argument('table', required=False)
 @click.pass_context
-def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
+def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
     """List the tables or datasets permitted by the security profile of the current user.
 
-    [NAME] Prism table name to list.
+    [TABLE] Prism table ID or name (--isName flag) to list.
     """
-
-    if type_ in ('summary', 'permissions') and format_ == 'schema':
-        # Summary results cannot generate schema since there will be no fields.
-        logger.error(f'Invalid combination of type "{type_}" and format "{format_}".')
-        sys.exit(1)
 
     p = ctx.obj['p']
 
     # Query the tenant...see if the caller said to treat the
     # table as a name, AND that a table was provided.
     if not isname and table is not None:
-        # When using an ID, the get operation returns a simple
+        # When using an ID, the GET:/tables operation returns a simple
         # dictionary of the table definition.
         table = p.tables_get(id=table, type_=type_)
 
@@ -51,20 +45,10 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
             logger.error(f"Table ID {table} not found.")
             sys.exit(1)
 
-        if format_ == 'schema':
-            # Same as JSON, but with extraneous attributes removed.
-            if schema_fixup(table):
-                logger.info(json.dumps(table, indent=2))
-            else:
-                # This should never happen.
-                logger.error('invalid schema detected.')
-                sys.exit(1)
-        elif format_ == 'tabular':
-            pass
-            # df = pd.json_normalize(table)
-            # logger.info(df.to_csv(index=False))
-        else:
-            logger.info(json.dumps(table, indent=2))
+        if compact:
+            table = schema_compact(table)
+
+        logger.info(json.dumps(table, indent=2))
     else:
         # When querying by name, the get operation returns a
         # dict with a count of found tables and a list of
@@ -75,20 +59,11 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
             logger.error(f"Table ID {table} not found.")
             return
 
-        if format_ == 'json':
-            logger.info(json.dumps(tables, indent=2))
-        elif format_ == 'tabular':
-            pass
-            # df = pd.json_normalize(tables['data'])
-            # logger.info(df.to_csv(index=False))
-        elif format_ == 'schema':
-            # Slim down all the tables we got back.
+        if compact:
             for tab in tables['data']:
-                if not schema_fixup(tab):
-                    logger.error('unexpected error in schema_fixup.')
-                    sys.exit()
+                tab = schema_compact(tab)
 
-            logger.info(json.dumps(tables, indent=2))
+        logger.info(json.dumps(tables, indent=2))
 
 
 @click.command('create')
@@ -155,12 +130,12 @@ def tables_create(ctx, name, displayname, tags, enableforanalysis, sourcename, s
         sys.exit(1)
 
 
-@click.command('put')
+@click.command('edit')
 @click.option('-t', '--truncate', is_flag=True, default=False,
               help='Truncate the table before updating.')
 @click.argument('file', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.pass_context
-def tables_put(ctx, file, truncate):
+def tables_edit(ctx, file, truncate):
     """Edit the schema for an existing table.
 
     [FILE] File containing an updated schema definition for the table.
