@@ -541,7 +541,8 @@ class Prism:
             if table_name is not None:
                 # Substring search for matching table names, display names
                 match_tables = [tab for tab in tables["data"]
-                                if table_name.lower() in tab["name"].lower() or table_name.lower() in tab["displayName"].lower()]
+                                if table_name.lower() in tab["name"].lower() or
+                                table_name.lower() in tab["displayName"].lower()]
             else:
                 # Grab all the tables in the result
                 match_tables = tables["data"]
@@ -595,7 +596,7 @@ class Prism:
 
         return None
 
-    def tables_put(self, schema, truncate=False):
+    def tables_put(self, schema):
         """Update an existing table using a full schema definition.
 
         Notes
@@ -607,10 +608,6 @@ class Prism:
         ----------
         schema : dict
             A dictionary containing the schema
-
-        truncate : bool
-            True to automatically truncate the table before
-            applying the new schema.
 
         Returns
         -------
@@ -851,7 +848,6 @@ class Prism:
             bucket_name = bucket_name
 
         table_schema = None
-        bucket_schema = None
 
         if schema is not None:
             if isinstance(schema, dict):
@@ -1129,10 +1125,10 @@ class Prism:
             return_json = response.json()
 
             if searching:
-                # Only add matching rows
+                # Only add matching rows - check name and displayName
                 data_changes["data"] += \
-                    filter(lambda dtc: dtc["name"].find(datachange_name) != -1 or
-                           dtc["displayName"].find(datachange_name) != -1,
+                    filter(lambda dtc: dtc["name"].lower().find(datachange_name.lower()) != -1 or
+                           dtc["displayName"].lower().find(datachange_name.lower()) != -1,
                            return_json["data"])
             else:
                 # Without searching, simply paste the current page to the list.
@@ -1302,7 +1298,7 @@ class Prism:
 
         Parameters
         ----------
-        id : str
+        filecontainer_id : str
             File container ID to list.
 
         Returns
@@ -1345,7 +1341,7 @@ class Prism:
         """
 
         # Create the specified fID - a new ID is created if None.
-        resolved_fid = id
+        resolved_fid = filecontainer_id  # No testing here, just use it.
 
         target_files = resolve_file_list(file)
 
