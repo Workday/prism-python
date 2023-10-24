@@ -1448,3 +1448,50 @@ def resolve_file_list(files):
             logger.warning(f"File {f} is not a .csv.gz or .csv file - skipping.")
 
     return target_files
+
+
+def table_upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
+    """Create a new Prism table.
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    file : str | list
+        The path to CSV or GZIP compressed file(s) to upload.
+
+    table_id : str
+        The ID of the Prism table to upload your file to.
+
+    table_name : str
+        The API name of the Prism table to upload your file to.
+
+    operation : str (default = TruncateandInsert)
+        The table load operation.
+        Possible options include TruncateandInsert, Insert, Update, Upsert, Delete.
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    bucket = p.buckets_create(target_id=table_id, target_name=table_name, operation=operation)
+
+    if bucket is None:
+        return None
+
+    file_results = p.buckets_files(bucket["id"], file)
+
+    if file_results['total'] > 0:
+        results = p.buckets_complete(bucket["id"])
+
+        # Add the file upload results to the bucket
+        # info returned to the caller.
+        results['files'] = file_results
+        results['bucket'] = bucket  # Ensure bucket info is present.
+
+        return results
+    else:
+        return file_results
