@@ -11,8 +11,6 @@ from .commands import buckets_commands as b_commands
 from .commands import dataChanges_commands as d_commands
 from .commands import dataExport_commands as e_commands
 from .commands import fileContainers_commands as f_commands
-from .commands import wql_commands as w_commands
-from .commands import raas_commands as r_commands
 
 
 def param_fixup(value, config, config_name, option):
@@ -227,28 +225,6 @@ def fileContainers():
 fileContainers.add_command(f_commands.fileContainers_create)
 fileContainers.add_command(f_commands.fileContainers_get)
 fileContainers.add_command(f_commands.fileContainers_load)
-
-
-@cli.group("wql")
-def wql():
-    """
-    Operations to list (/dataSources) and run WQL queries (/data).
-    """
-
-
-wql.add_command(w_commands.dataSources)
-wql.add_command(w_commands.dataSources_fields)
-wql.add_command(w_commands.data)
-
-
-@cli.group("raas")
-def raas():
-    """
-    Run custom or Workday delivered report.
-    """
-
-
-raas.add_command(r_commands.run)
 
 
 if __name__ == "__main__":
