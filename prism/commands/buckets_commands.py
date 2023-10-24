@@ -17,17 +17,12 @@ logger = logging.getLogger('prismCLI')
               help="How much information to be returned in response JSON.")
 @click.option("-s", "--search", is_flag=True, show_default=True, default=False,
               help="Use substring search bucket or table.")
-@click.option("-f", "--format", "format_",
-              type=click.Choice(['json', 'tabular', 'schema'], case_sensitive=False),
-              default="json",
-              help="Format output as JSON, tabular, or CSV.",
-              )
 @click.option("--table",
               help="The id or name of a Prism table to list all buckets.")
 @click.argument("bucket", required=False)
 @click.pass_context
 def buckets_get(ctx, bucket, table, isname,
-                limit, offset, type_, search, format_):
+                limit, offset, type_, search):
     """
     View the buckets permitted by the security profile of the current user.
 
@@ -47,13 +42,7 @@ def buckets_get(ctx, bucket, table, isname,
     if not isname and bucket is not None:
         # This should be a bucket ID - ignore all other options.
         bucket = p.buckets_get(id=bucket, type_=type_)
-
-        if format_ == "tabular":
-            pass
-            # df = pd.json_normalize(bucket)
-            # logger.info(df.to_csv(index=False))
-        else:
-            logger.info(json.dumps(bucket, indent=2))
+        logger.info(json.dumps(bucket, indent=2))
 
         return
 
@@ -74,12 +63,7 @@ def buckets_get(ctx, bucket, table, isname,
     if buckets['total'] == 0:
         logger.info('No buckets found.')
     else:
-        if format_ == "tabular":
-            pass
-            # df = pd.json_normalize(buckets["data"])
-            # logger.info(df.to_csv(index=False))
-        else:
-            logger.info(json.dumps(buckets, indent=2))
+        logger.info(json.dumps(buckets, indent=2))
 
 
 @click.command("create")
