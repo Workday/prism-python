@@ -4,7 +4,6 @@ import sys
 import os
 import csv
 import click
-import pandas as pd
 
 from prism import schema_fixup
 
@@ -61,8 +60,9 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
                 logger.error('invalid schema detected.')
                 sys.exit(1)
         elif format_ == 'tabular':
-            df = pd.json_normalize(table)
-            logger.info(df.to_csv(index=False))
+            pass
+            # df = pd.json_normalize(table)
+            # logger.info(df.to_csv(index=False))
         else:
             logger.info(json.dumps(table, indent=2))
     else:
@@ -78,8 +78,9 @@ def tables_get(ctx, isname, table, limit, offset, type_, format_, search):
         if format_ == 'json':
             logger.info(json.dumps(tables, indent=2))
         elif format_ == 'tabular':
-            df = pd.json_normalize(tables['data'])
-            logger.info(df.to_csv(index=False))
+            pass
+            # df = pd.json_normalize(tables['data'])
+            # logger.info(df.to_csv(index=False))
         elif format_ == 'schema':
             # Slim down all the tables we got back.
             for tab in tables['data']:

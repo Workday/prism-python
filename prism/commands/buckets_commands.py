@@ -2,7 +2,6 @@ import json
 import logging
 import sys
 import click
-import pandas as pd
 
 logger = logging.getLogger('prismCLI')
 
@@ -50,8 +49,9 @@ def buckets_get(ctx, bucket, table, isname,
         bucket = p.buckets_get(id=bucket, type_=type_)
 
         if format_ == "tabular":
-            df = pd.json_normalize(bucket)
-            logger.info(df.to_csv(index=False))
+            pass
+            # df = pd.json_normalize(bucket)
+            # logger.info(df.to_csv(index=False))
         else:
             logger.info(json.dumps(bucket, indent=2))
 
@@ -75,8 +75,9 @@ def buckets_get(ctx, bucket, table, isname,
         logger.info('No buckets found.')
     else:
         if format_ == "tabular":
-            df = pd.json_normalize(buckets["data"])
-            logger.info(df.to_csv(index=False))
+            pass
+            # df = pd.json_normalize(buckets["data"])
+            # logger.info(df.to_csv(index=False))
         else:
             logger.info(json.dumps(buckets, indent=2))
 

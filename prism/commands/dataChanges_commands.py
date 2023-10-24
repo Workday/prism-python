@@ -3,7 +3,6 @@ import click
 import json
 import logging
 import time
-import pandas as pd
 
 logger = logging.getLogger('prismCLI')
 
@@ -70,12 +69,13 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, format_, search):
         else:
             output_summary_dct(data_change_task)
     elif format_ == "csv":
-        if 'data' in data_change_task:
-            df = pd.json_normalize(data_change_task["data"])
-        else:
-            df = pd.json_normalize(data_change_task)
+        pass
+        #if 'data' in data_change_task:
+        #    df = pd.json_normalize(data_change_task["data"])
+        #else:
+        #    df = pd.json_normalize(data_change_task)
 
-        logger.info(df.to_csv(index=False))
+        #logger.info(df.to_csv(index=False))
     else:
         if 'data' in data_change_task:
             logger.info(json.dumps(data_change_task["data"], indent=2))
