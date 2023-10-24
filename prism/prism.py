@@ -708,7 +708,7 @@ class Prism:
 
         # If we got an ID, then do a direct query by ID - no paging or
         # searching required.
-        if id is not None:
+        if bucket_id is not None:
             operation = f"{operation}/{bucket_id}?format={output_type}"
             logger.debug(f"get: {operation}")
             url = self.prism_endpoint + operation
