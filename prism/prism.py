@@ -94,15 +94,15 @@ def schema_compact(schema):
     """Utility function to revise a schema for a bucket operations."""
 
     if schema is None:
-        logger.error("schema_fixup: schema cannot be None.")
+        logger.error("schema_compact: schema cannot be None.")
         return None
 
     if not isinstance(schema, dict):
-        logger.error("schema_fixup: schema is not a dictionary.")
+        logger.error("schema_compact: schema is not a dictionary.")
         return None
 
     if 'fields' not in schema or not isinstance(schema['fields'], list):
-        logger.error("fields attribute missing from schema!")
+        logger.error("schema_compact: fields attribute missing from schema!")
         return None
 
     compact_schema = copy.deepcopy(schema)
@@ -592,11 +592,13 @@ class Prism:
         logger.debug(f"POST : {operation}")
         url = self.prism_endpoint + "/tables"
 
-        if not schema_fixup(schema):
+        compact_schema = schema_compact(schema)
+
+        if compact_schema is None:
             logger.error("Invalid schema for create operation.")
             return None
 
-        response = self.http_post(url=url, headers=self.CONTENT_APP_JSON, data=json.dumps(schema))
+        response = self.http_post(url=url, headers=self.CONTENT_APP_JSON, data=json.dumps(compact_schema))
 
         if response.status_code == 201:
             return response.json()
@@ -626,17 +628,19 @@ class Prism:
             If the request is successful, a dictionary containing information about
             the new table is returned, otherwise None.
         """
-        if not schema_fixup(schema):
+        compact_schema = schema_compact(schema)
+
+        if compact_schema is None:
             logger.error("Invalid schema for update operation.")
             return None
 
-        table_id = schema['id']
+        table_id = compact_schema['id']
 
         operation = f"/tables/{table_id}"
         logger.debug(f"PUT: {operation}")
         url = self.prism_endpoint + operation
 
-        response = self.http_put(url=url, data=schema)
+        response = self.http_put(url=url, data=compact_schema)
 
         if response.status_code == 200:
             return response.json()
@@ -908,11 +912,14 @@ class Prism:
 
         # We have the table and the user didn't include a schema. Make a copy
         # of the target table's schema.
-        if not schema_fixup(table_schema):
+
+        compact_schema = schema_compact(table_schema)
+
+        if compact_schema is None:
             logger.error('Invalid schema for bucket operation.')
             return None
 
-        bucket_schema = table_to_bucket_schema(table_schema)
+        bucket_schema = table_to_bucket_schema(compact_schema)
 
         logger.debug(f"post: /buckets")
         url = self.prism_endpoint + "/buckets"
