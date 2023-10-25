@@ -62,13 +62,9 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, search):
             sys.exit(1)
 
         # For display purposes, sort by display name (case-insensitive)
-        data_change_task["data"] = sorted(
-            data_change_task["data"], key=lambda dct_srt: dct_srt["displayName"].lower()
-        )
+        data_change_task["data"] = sorted(data_change_task["data"], key=lambda dct_srt: dct_srt["displayName"].lower())
     else:
-        data_change_task = p.dataChanges_get(
-            datachange_id=dct, limit=limit, offset=offset, type_=type_
-        )
+        data_change_task = p.dataChanges_get(datachange_id=dct, limit=limit, offset=offset, type_=type_)
 
         if data_change_task is None:
             logger.error(f"Data change task {dct} not found.")
@@ -85,9 +81,7 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, search):
     is_flag=True,
     help="Flag to treat the dct argument as a name.",
 )
-@click.option(
-    "-s", "--search", is_flag=True, help="Use contains search substring for --name."
-)
+@click.option("-s", "--search", is_flag=True, help="Use contains search substring for --name.")
 @click.argument("dct", required=True)
 @click.pass_context
 def dataChanges_validate(ctx, isname, dct, search):
@@ -277,9 +271,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
     logger.debug(f"new file container ID: {filecontainer_id}")
 
     # Execute the DCT.
-    activity = p.dataChanges_activities_post(
-        datachange_id=dct_id, fileContainer_id=filecontainer_id
-    )
+    activity = p.dataChanges_activities_post(datachange_id=dct_id, fileContainer_id=filecontainer_id)
 
     if "errors" in activity:
         # Add the ID of the DCT for easy identification.
@@ -297,9 +289,7 @@ def dataChanges_upload(ctx, isname, dct, file, wait, verbose):
         while True:
             time.sleep(10)
 
-            activity = p.dataChanges_activities_get(
-                datachange_id=dct_id, activityID=activity_id
-            )
+            activity = p.dataChanges_activities_get(datachange_id=dct_id, activityID=activity_id)
 
             status = activity["state"]["descriptor"]
 

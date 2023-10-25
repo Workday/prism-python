@@ -79,24 +79,16 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
     else:
         # Search by table ID or name.
         if isname:
-            buckets = p.buckets_get(
-                table_name=table, search=search, limit=limit, offset=offset, type_=type_
-            )
+            buckets = p.buckets_get(table_name=table, search=search, limit=limit, offset=offset, type_=type_)
         else:
-            buckets = p.buckets_get(
-                table_id=table, limit=limit, offset=offset, type_=type_
-            )
+            buckets = p.buckets_get(table_id=table, limit=limit, offset=offset, type_=type_)
 
     logger.info(json.dumps(buckets, indent=2))
 
 
 @click.command("create")
-@click.option(
-    "-n", "--target_name", default=None, help="Table name to associate with the bucket."
-)
-@click.option(
-    "-i", "--target_id", default=None, help="Table ID to associate with the table."
-)
+@click.option("-n", "--target_name", default=None, help="Table name to associate with the bucket.")
+@click.option("-i", "--target_id", default=None, help="Table ID to associate with the table.")
 @click.option(
     "-f",
     "--file",
@@ -149,12 +141,8 @@ def buckets_create(ctx, target_name, target_id, file, operation, bucket):
     default=None,
     help="Name of the table to associate with the bucket.",
 )
-@click.option(
-    "-i", "--target_id", default=None, help="Table ID to associate with the table."
-)
-@click.option(
-    "-f", "--file", default=None, help="Schema JSON file for the target table."
-)
+@click.option("-i", "--target_id", default=None, help="Table ID to associate with the table.")
+@click.option("-f", "--file", default=None, help="Schema JSON file for the target table.")
 @click.option(
     "-o",
     "--operation",
@@ -172,9 +160,7 @@ def buckets_create(ctx, target_name, target_id, file, operation, bucket):
 )
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
 @click.pass_context
-def buckets_files(
-    ctx, target_name, target_id, file, operation, bucket, complete, files
-):
+def buckets_files(ctx, target_name, target_id, file, operation, bucket, complete, files):
     """
     Upload one or more CSV or gzip files to the specified bucket
 
@@ -236,9 +222,7 @@ def buckets_complete(ctx, isname, bucket):
     bucket_state = bucket["state"]["descriptor"]
 
     if bucket_state != "New":
-        logger.error(
-            f'Bucket state is "{bucket_state}" - only "New" buckets can be completed.'
-        )
+        logger.error(f'Bucket state is "{bucket_state}" - only "New" buckets can be completed.')
         sys.exit(1)
 
     logger.info(p.buckets_complete(bucket["id"]))
@@ -280,9 +264,7 @@ def buckets_errorFile(ctx, isname, bucket):
 
 
 @click.command("status")
-@click.option(
-    "-n", "--isName", is_flag=True, default=False, help="Bucket name to status"
-)
+@click.option("-n", "--isName", is_flag=True, default=False, help="Bucket name to status")
 @click.argument("bucket", required=True)
 @click.pass_context
 def buckets_status(ctx, isname, bucket):

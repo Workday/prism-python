@@ -27,9 +27,7 @@ logger.setLevel(logging.WARNING)
 # writing to stdout only...
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.WARNING)
-log_format = logging.Formatter(
-    "%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S"
-)
+log_format = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
 handler.setFormatter(log_format)
 logger.addHandler(handler)
 
@@ -70,9 +68,7 @@ def set_logging(log_file=None, log_level="INFO"):
         fh.setLevel(set_level)
 
         # create formatter and add it to the handlers
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         fh.setFormatter(formatter)
 
         logger.addHandler(fh)
@@ -111,11 +107,7 @@ def schema_compact(schema):
     # there will not be a fields attribute.
     if "fields" in compact_schema:
         # Remove Prism managed fields "WPA_*"
-        compact_schema["fields"] = [
-            fld
-            for fld in compact_schema["fields"]
-            if not fld["name"].startswith("WPA_")
-        ]
+        compact_schema["fields"] = [fld for fld in compact_schema["fields"] if not fld["name"].startswith("WPA_")]
 
         for ordinal in range(len(compact_schema["fields"])):
             fld = schema["fields"][ordinal]
@@ -255,9 +247,7 @@ class Prism:
         self.token_endpoint = f"{base_url}/ccx/oauth2/{tenant_name}/token"
         self.rest_endpoint = f"{base_url}/ccx/api/{version}/{tenant_name}"
         self.prism_endpoint = f"{base_url}/api/prismAnalytics/{version}/{tenant_name}"
-        self.upload_endpoint = (
-            f"{base_url}/wday/opa/tenant/{tenant_name}/service/wBuckets"
-        )
+        self.upload_endpoint = f"{base_url}/wday/opa/tenant/{tenant_name}/service/wBuckets"
 
         # At creation, there cannot yet be a bearer_token obtained from Workday.
         self.bearer_token = None
@@ -410,9 +400,7 @@ class Prism:
             "client_secret": self.client_secret,
         }
 
-        r = self.http_post(
-            url=self.token_endpoint, headers=self.CONTENT_FORM, data=data
-        )
+        r = self.http_post(url=self.token_endpoint, headers=self.CONTENT_FORM, data=data)
 
         if r.status_code == 200:
             logger.debug("successfully obtained bearer token")
@@ -433,10 +421,7 @@ class Prism:
         Returns:
             Workday bearer token.
         """
-        if (
-            self.bearer_token is None
-            or (time.time() - self.bearer_token_timestamp) > 900
-        ):
+        if self.bearer_token is None or (time.time() - self.bearer_token_timestamp) > 900:
             self.create_bearer_token()
 
         if self.bearer_token is None:
@@ -494,9 +479,7 @@ class Prism:
         operation = "/tables"
 
         if type_ is None or type_.lower() not in ["full", "summary", "permissions"]:
-            logger.warning(
-                "Invalid output type for tables list operation - defaulting to summary."
-            )
+            logger.warning("Invalid output type for tables list operation - defaulting to summary.")
             output_type = "summary"
         else:
             output_type = type_.lower()
@@ -570,8 +553,7 @@ class Prism:
                 match_tables = [
                     tab
                     for tab in tables["data"]
-                    if table_name.lower() in tab["name"].lower()
-                    or table_name.lower() in tab["displayName"].lower()
+                    if table_name.lower() in tab["name"].lower() or table_name.lower() in tab["displayName"].lower()
                 ]
             else:
                 # Grab all the tables in the result
@@ -592,9 +574,7 @@ class Prism:
                 break
 
         # We always return a dict with the total tables found.
-        return_tables["total"] = len(
-            return_tables["data"]
-        )  # Separate step for debugging.
+        return_tables["total"] = len(return_tables["data"])  # Separate step for debugging.
         return return_tables
 
     def tables_post(self, schema):
@@ -621,9 +601,7 @@ class Prism:
             logger.error("Invalid schema for create operation.")
             return None
 
-        response = self.http_post(
-            url=url, headers=self.CONTENT_APP_JSON, data=json.dumps(compact_schema)
-        )
+        response = self.http_post(url=url, headers=self.CONTENT_APP_JSON, data=json.dumps(compact_schema))
 
         if response.status_code == 201:
             return response.json()
@@ -742,9 +720,7 @@ class Prism:
         """
         operation = "/buckets"
 
-        output_type = (
-            type_.lower() if type_.lower() in ["full", "summary"] else "summary"
-        )
+        output_type = type_.lower() if type_.lower() in ["full", "summary"] else "summary"
 
         # If we got an ID, then do a direct query by ID - no paging or
         # searching required.
@@ -806,27 +782,17 @@ class Prism:
             if bucket_name is not None:  # We are searching at this point.
                 # Substring search for matching table names
                 match_buckets = [
-                    bck
-                    for bck in buckets["data"]
-                    if bucket_name in bck["name"] or bucket_name in bck["displayName"]
+                    bck for bck in buckets["data"] if bucket_name in bck["name"] or bucket_name in bck["displayName"]
                 ]
             elif table_id is not None:
-                match_buckets = [
-                    bck
-                    for bck in buckets["data"]
-                    if table_id == bck["targetDataset"]["id"]
-                ]
+                match_buckets = [bck for bck in buckets["data"] if table_id == bck["targetDataset"]["id"]]
             elif table_name is not None:
                 # Caller is looking for any/all buckets by target table(s)
                 match_buckets = [
                     bck
                     for bck in buckets["data"]
                     if table_name == bck["targetDataset"]["descriptor"]
-                    or (
-                        search
-                        and table_name.lower()
-                        in bck["targetDataset"]["descriptor"].lower()
-                    )
+                    or (search and table_name.lower() in bck["targetDataset"]["descriptor"].lower())
                 ]
             else:
                 # No search in progress, grab all the buckets in this page.
@@ -921,9 +887,7 @@ class Prism:
             # The caller expects the schema to come from the
             # passed schema - do a quick sanity check.
             if table_schema is None:
-                logger.error(
-                    "schema, target id or target name is required to create a bucket."
-                )
+                logger.error("schema, target id or target name is required to create a bucket.")
                 return None
 
             if "id" not in table_schema or "fields" not in table_schema:
@@ -931,9 +895,7 @@ class Prism:
                 return None
         else:
             if target_id is not None:  # Always use ID if provided - has precedence.
-                table = self.tables_get(
-                    table_id=target_id, type_="full"
-                )  # Full=include fields object
+                table = self.tables_get(table_id=target_id, type_="full")  # Full=include fields object
 
                 if table is None:
                     logger.error(f"table ID {target_id} not found.")
@@ -974,9 +936,7 @@ class Prism:
             "schema": bucket_schema,
         }
 
-        response = self.http_post(
-            url, headers=self.CONTENT_APP_JSON, data=json.dumps(data)
-        )
+        response = self.http_post(url, headers=self.CONTENT_APP_JSON, data=json.dumps(data))
 
         if response.status_code == 201:
             response_json = response.json()
@@ -1068,18 +1028,14 @@ class Prism:
 
                 # Buckets can only load gzip files - do it.
                 with open(target_file, "rb") as in_file:
-                    new_file = {
-                        "file": (upload_filename, gzip.compress(in_file.read()))
-                    }
+                    new_file = {"file": (upload_filename, gzip.compress(in_file.read()))}
 
             response = self.http_post(url, files=new_file)
 
             if response.status_code == 201:
                 logger.debug(f"successfully uploaded {target_file} to the bucket")
 
-                results["data"].append(
-                    response.json()
-                )  # Add this file's info to the return list
+                results["data"].append(response.json())  # Add this file's info to the return list
 
         results["total"] = len(results["data"])
         return results
@@ -1126,18 +1082,12 @@ class Prism:
         operation = "/dataChanges"
 
         # Make sure output type is valid.
-        output_type = (
-            type_.lower() if type_.lower() in ["summary", "full"] else "summary"
-        )
+        output_type = type_.lower() if type_.lower() in ["summary", "full"] else "summary"
 
         # Searching by ID is a special case that eliminates all other types
         # of search.  Ask for the datachange by id and return just this
         # result - even blank.
-        if (
-            datachange_id is not None
-            and isinstance(datachange_id, str)
-            and len(datachange_id) > 0
-        ):
+        if datachange_id is not None and isinstance(datachange_id, str) and len(datachange_id) > 0:
             operation = f"{operation}/{datachange_id}?type={output_type}"
             logger.debug(f"dataChanges_get: {operation}")
             url = self.prism_endpoint + operation
@@ -1166,11 +1116,7 @@ class Prism:
         searching = False
         name_param = ""
 
-        if (
-            datachange_name is not None
-            and isinstance(datachange_name, str)
-            and len(datachange_name) > 0
-        ):
+        if datachange_name is not None and isinstance(datachange_name, str) and len(datachange_name) > 0:
             if search is not None and isinstance(search, bool) and search:
                 # Force a return of ALL data change tasks, so we can search the names.
                 name_param = ""  # Added to the query params
@@ -1398,9 +1344,7 @@ class Prism:
             return {"total": len(return_json), "data": return_json}
 
         if response.status_code == 404:
-            logger.warning(
-                "verify: Self-Service: Prism File Container domain in the Prism Analytics functional area."
-            )
+            logger.warning("verify: Self-Service: Prism File Container domain in the Prism Analytics functional area.")
 
         return {"total": 0, "data": []}  # Always return a list.
 
@@ -1439,9 +1383,7 @@ class Prism:
                 upload_filename += ".gz"
 
                 with open(target_file, "rb") as in_file:
-                    new_file = {
-                        "file": (upload_filename, gzip.compress(in_file.read()))
-                    }
+                    new_file = {"file": (upload_filename, gzip.compress(in_file.read()))}
 
             # Create the file container and get the ID.  We use the
             # file container ID to load the file and then return the
@@ -1551,9 +1493,7 @@ def upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndI
     the table is returned.
     """
 
-    bucket = p.buckets_create(
-        target_id=table_id, target_name=table_name, operation=operation
-    )
+    bucket = p.buckets_create(target_id=table_id, target_name=table_name, operation=operation)
 
     if bucket is None:
         return None
@@ -1620,9 +1560,7 @@ def load_schema(p=None, file=None, source_name=None, source_id=None):
             else:
                 # This should be a full schema, perhaps from a table list command.
                 if "name" not in schema and "fields" not in schema:
-                    logger.error(
-                        "Invalid schema - name and fields attribute not found."
-                    )
+                    logger.error("Invalid schema - name and fields attribute not found.")
                     return None
         except Exception as e:
             logger.error(e)
@@ -1630,23 +1568,17 @@ def load_schema(p=None, file=None, source_name=None, source_id=None):
     else:
         # No file was specified, check for a Prism source table.
         if source_name is None and source_id is None:
-            logger.error(
-                "No schema file provided and a table (--sourceName or --sourceId) not specified."
-            )
+            logger.error("No schema file provided and a table (--sourceName or --sourceId) not specified.")
             return None
 
         if source_id is not None:
-            schema = p.tables_list(
-                id=source_id, type_="full"
-            )  # Exact match on WID - and get the fields (full)
+            schema = p.tables_list(id=source_id, type_="full")  # Exact match on WID - and get the fields (full)
 
             if schema is None:
                 logger.error(f"Invalid --sourceId {source_id} : table not found.")
                 return None
         else:
-            tables = p.tables_list(
-                name=source_name, type_="full"
-            )  # Exact match on API Name
+            tables = p.tables_list(name=source_name, type_="full")  # Exact match on API Name
 
             if tables["total"] == 0:
                 logger.error(f"Invalid --sourceName {source_name} : table not found.")

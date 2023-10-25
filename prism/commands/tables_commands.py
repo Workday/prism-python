@@ -80,9 +80,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
         # When querying by name, the get operation returns a
         # dict with a count of found tables and a list of
         # tables.
-        tables = p.tables_get(
-            table_name=table, limit=limit, offset=offset, type_=type_, search=search
-        )
+        tables = p.tables_get(table_name=table, limit=limit, offset=offset, type_=type_, search=search)
 
         if tables["total"] == 0:
             logger.error(f"Table ID {table} not found.")
@@ -110,9 +108,7 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
 @click.option("-w", "--sourceWID", help="The WID of an existing table to copy.")
 @click.argument("file", required=False, type=click.Path(exists=True))
 @click.pass_context
-def tables_create(
-    ctx, table_name, displayname, enableforanalysis, sourcename, sourcewid, file
-):
+def tables_create(ctx, table_name, displayname, enableforanalysis, sourcename, sourcewid, file):
     """
     Create a new table with the specified name.
 
@@ -169,9 +165,7 @@ def tables_create(
     default=False,
     help="Truncate the table before updating.",
 )
-@click.argument(
-    "file", required=True, type=click.Path(exists=True, dir_okay=False, readable=True)
-)
+@click.argument("file", required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.pass_context
 def tables_edit(ctx, file, truncate):
     """Edit the schema for an existing table.
@@ -223,13 +217,9 @@ def tables_edit(ctx, file, truncate):
     type=click.Choice(["true", "false"], case_sensitive=False),
 )
 @click.argument("table", required=True, type=str)
-@click.argument(
-    "file", required=False, type=click.Path(exists=True, dir_okay=False, readable=True)
-)
+@click.argument("file", required=False, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.pass_context
-def tables_patch(
-    ctx, isname, table, file, displayname, description, documentation, enableforanalysis
-):
+def tables_patch(ctx, isname, table, file, displayname, description, documentation, enableforanalysis):
     """Edit the specified attributes of an existing table with the specified id (or name).
 
     If an attribute is not provided in the request, it will not be changed.  To set an

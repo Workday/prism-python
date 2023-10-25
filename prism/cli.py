@@ -134,29 +134,15 @@ def cli(
                 # Any value not passed and not in the environment arrives here with
                 # the value "None" - override these with the configuration values.
 
-                base_url = param_fixup(
-                    base_url, config, config_name, "workday_base_url"
-                )
-                tenant_name = param_fixup(
-                    tenant_name, config, config_name, "workday_tenant_name"
-                )
-                client_id = param_fixup(
-                    client_id, config, config_name, "prism_client_id"
-                )
-                client_secret = param_fixup(
-                    client_secret, config, config_name, "prism_client_secret"
-                )
-                refresh_token = param_fixup(
-                    refresh_token, config, config_name, "prism_refresh_token"
-                )
-                log_level = param_fixup(
-                    log_level, config, config_name, "prism_log_level"
-                )
+                base_url = param_fixup(base_url, config, config_name, "workday_base_url")
+                tenant_name = param_fixup(tenant_name, config, config_name, "workday_tenant_name")
+                client_id = param_fixup(client_id, config, config_name, "prism_client_id")
+                client_secret = param_fixup(client_secret, config, config_name, "prism_client_secret")
+                refresh_token = param_fixup(refresh_token, config, config_name, "prism_refresh_token")
+                log_level = param_fixup(log_level, config, config_name, "prism_log_level")
                 log_file = param_fixup(log_file, config, config_name, "prism_log_file")
             else:
-                click.echo(
-                    f"The specified configuration [{config_name}] does not exist in the configuration file."
-                )
+                click.echo(f"The specified configuration [{config_name}] does not exist in the configuration file.")
                 sys.exit(1)
         except configparser.Error:
             click.echo(f"Error accessing configuration file {filename}.")
