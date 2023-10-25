@@ -83,7 +83,7 @@ def log_elapsed(msg, timedelta):
 
 
 def buckets_gen_name():
-    bucket_name = "cli_" + uuid.uuid4().hex
+    bucket_name = "prism_python_" + uuid.uuid4().hex
     logger.debug(f"buckets_gen_name: created bucket name: {bucket_name}")
 
     return bucket_name
