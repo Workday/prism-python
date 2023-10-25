@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 
-logger = logging.getLogger('prismCLI')
+logger = logging.getLogger("prismCLI")
 
 
 @click.command("create")
@@ -18,7 +18,7 @@ def fileContainers_create(ctx):
     if file_container is not None:
         logger.info(json.dumps(file_container, indent=2))
     else:
-        logger.error('Error creating file container.')
+        logger.error("Error creating file container.")
         sys.exit(1)
 
 
@@ -39,8 +39,12 @@ def fileContainers_get(ctx, id):
 
 
 @click.command("load")
-@click.option("-i", "--id", default=None,
-              help="Target File container ID - defaults to a new container.")
+@click.option(
+    "-i",
+    "--id",
+    default=None,
+    help="Target File container ID - defaults to a new container.",
+)
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
 def fileContainers_load(ctx, id, file):
@@ -64,7 +68,7 @@ def fileContainers_load(ctx, id, file):
     # working.  Note: any error messages have already
     # been logged by the load operation.
 
-    if results['total'] == 0:
+    if results["total"] == 0:
         logger.error("A file container id is required to load a file.")
         sys.exit(1)
     else:
