@@ -1,6 +1,0 @@
-name,displayName,ordinal,type,businessObject,precision,scale,parseFormat,required,externalId
-text_field, text field,,text
-date_field, date field,,date,,,,MM/DD/yy
-numeric_field, numeric field,,numeric,,19,3
-required_field,required field,,,,,,,true
-external_field, external id,,,,,,,true,true

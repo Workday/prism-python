@@ -407,7 +407,7 @@ class Prism:
             self.bearer_token = r.json()["access_token"]
             self.bearer_token_timestamp = time.time()
         else:
-            logger.error(f"create bearer token failed: HTTP status code.")
+            # Error handling occurred in http_post, fail silently here.
             self.bearer_token = None
             self.bearer_token_timestamp = None
 
@@ -918,7 +918,7 @@ class Prism:
                 tables = self.tables_get(table_name=target_name, type_="full")
 
                 if tables["total"] == 0:
-                    logger.error(f"table not found for bucket operation.")
+                    logger.error(f"table {target_name} not found for bucket operation.")
                     return None
 
                 table = tables["data"][0]
@@ -940,7 +940,7 @@ class Prism:
 
         bucket_schema = table_to_bucket_schema(compact_schema)
 
-        logger.debug(f"post: /buckets")
+        logger.debug("post: /buckets")
         url = self.prism_endpoint + "/buckets"
 
         data = {
@@ -984,7 +984,9 @@ class Prism:
             logger.debug(f"successfully completed wBucket {bucket_id}.")
             return r.json()
         elif r.status_code == 400:
-            logger.debug(f"error completing bucket")
+            # This is an error coming back from the API call and
+            # is actually valid JSON with an "error" attribute.
+            logger.debug("non-fatal error completing bucket")
             return r.json()
 
         return None
@@ -1241,7 +1243,7 @@ class Prism:
             logger.debug(f"successfully started data load task - id: {activity_id}")
             return return_json
         elif r.status_code == 400:
-            logger.error(f"error running data change task.")
+            logger.error("error running data change task.")
             return r.json()  # This is still valid JSON with the error.
 
         return None
@@ -1535,7 +1537,7 @@ def truncate_table(p, table_id=None, table_name=None):
         bucket = p.buckets_create(target_name=table_name, operation="TruncateAndInsert")
 
     if bucket is None:
-        logger.error(f"Unable to truncate table - see log for details.")
+        logger.error("Unable to truncate table - see log for details.")
         return None
 
     bucket_id = bucket["id"]

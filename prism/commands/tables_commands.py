@@ -3,7 +3,7 @@ import logging
 import sys
 import click
 
-from prism import *
+from prism import (schema_compact, load_schema, upload_file, truncate_table)
 
 logger = logging.getLogger("prismCLI")
 
@@ -182,7 +182,7 @@ def tables_edit(ctx, file, truncate):
     table = p.tables_put(schema, truncate=truncate)
 
     if table is None:
-        logger.error(f"Error updating table.")
+        logger.error("Error updating table.")
     else:
         logger.info(json.dumps(table, indent=2))
 
