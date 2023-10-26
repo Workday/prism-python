@@ -484,7 +484,8 @@ class Prism:
         else:
             output_type = type_.lower()
 
-        # If we got a WID, then do a direct query by ID - no paging or searching required.
+        # If we got an ID, then do a direct query by ID - no validation, paging
+        # or searching required.
         if table_id is not None:
             operation = f"{operation}/{table_id}?format={output_type}"
             logger.debug(f"get: {operation}")
@@ -493,22 +494,26 @@ class Prism:
             response = self.http_get(url)
 
             if response.status_code == 200:
+                # Return the dict object to the caller - note: no
+                # 'total' or 'data' attributes for this single
+                # response to match the return from the API call.
                 return response.json()
             else:
                 return None
 
         # We are doing a query by attributes other than ID.
-        logger.debug(f"get: {operation}")
+        logger.debug(f"tables_get: {operation}")
         url = self.prism_endpoint + operation
 
         # Always return a valid JSON object of results regardless of
         # errors or API responses.  THIS METHOD NEVER FAILS.
         return_tables = {"total": 0, "data": []}
 
-        # Start setting up the API call parameters.
+        # Start setting up the API call parameters - this is the minimal
+        # parameters to perform a search.
         params = {
-            "limit": limit if limit is not None else 100,
-            "offset": offset if offset is not None else 0,
+            "limit": limit if isinstance(limit, int) and limit <= 100 else 20,
+            "offset": offset if isinstance(limit, int) and offset >= 0 else 0,
             "type": output_type,
         }
 
@@ -520,20 +525,26 @@ class Prism:
             # Should only be 0 (not found) or 1 (found) tables found.
             params["limit"] = 1
             params["offset"] = 0
-
-        # If we didn't get a limit, turn on searching to retrieve all tables.
-        if limit is None:
-            search = True  # Force a search so we get all tables
-
+        elif search and table_name is not None:
+            # If the caller asked for a search, open up the limits on
+            # the GETs for maximum retrieval since we need to look at
+            # every table to check for matches - a user specified limit
+            # (if specified) applies as tables are found.
+            params["limit"] = 100  # Max pagesize to retrieve in the fewest REST calls.
+            params["offset"] = 0
+        elif not search and limit is None:
+            # The caller asked for all the tables, i.e., no ID, table substring search,
+            # or limit - open up the limits for maximum retrieval.
+            search = True
             params["limit"] = 100  # Max pagesize to retrieve in the fewest REST calls.
             params["offset"] = 0
 
-        # Always assume we will retrieve more than one page.
+        # Assume we are paging the results.
         while True:
             r = self.http_get(url, params=params)
 
             if r.status_code != 200:
-                # Whatever we have captured (perhaps zero tables) so far
+                # Whatever we've captured (perhaps zero tables) so far
                 # will be returned due to unexpected status code.  Break
                 # and do final clean-up on exit.
                 break
@@ -541,19 +552,22 @@ class Prism:
             # Convert the response to a list of tables.
             tables = r.json()
 
+            # We are not searching, and we have a specific table - return
+            # whatever we got - maybe zero if table was not found.
             if not search and table_name is not None:  # Explicit table name
-                # We are not searching, and we have a specific table - return
-                # whatever we got (maybe nothing).
                 return tables
 
             # Figure out what tables of this batch of tables should be part of the
             # return results, i.e., search the this batch for matches.
             if table_name is not None:
-                # Substring search for matching table names, display names
+                table_lower = table_name.lower()
+
+                # We are searching, do a substring search for matching strings
+                # anywhere in table names and display names
                 match_tables = [
                     tab
                     for tab in tables["data"]
-                    if table_name.lower() in tab["name"].lower() or table_name.lower() in tab["displayName"].lower()
+                    if table_lower in tab["name"].lower() or table_lower in tab["displayName"].lower()
                 ]
             else:
                 # Grab all the tables in the result
@@ -851,7 +865,7 @@ class Prism:
         schema : dict
             A dictionary containing the schema fields describing the file.
         operation : str
-           Required, defaults to "TruncateAndInsert" operation
+           Required, defaults to 'TruncateAndInsert' operation
 
         Returns
         -------
@@ -879,7 +893,7 @@ class Prism:
                     logger.error(e)
                     return None
             else:
-                logger.error("invalid schema expecting dict or file name.")
+                logger.error("invalid schema - expecting dict or file name.")
                 return None
 
         # Resolve the target table; if specified.
@@ -1328,7 +1342,7 @@ class Prism:
 
         Returns
         -------
-            Dictionary of found files having a "total" attribute with the count
+            Dictionary of found files having a 'total' attribute with the count
             of files uploaded and a data attribute with an array of file metadata
             for each file in the container.
         """
