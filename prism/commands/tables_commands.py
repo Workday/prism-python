@@ -3,7 +3,7 @@ import logging
 import sys
 import click
 
-from prism import (schema_compact, load_schema, upload_file, truncate_table)
+from prism import schema_compact, load_schema, upload_file, truncate_table
 
 logger = logging.getLogger("prismCLI")
 
