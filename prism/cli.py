@@ -97,8 +97,6 @@ def cli(
     ctx,
     base_url,
     tenant_name,
-    username,
-    password,
     client_id,
     client_secret,
     refresh_token,
@@ -148,6 +146,13 @@ def cli(
             click.echo(f"Error accessing configuration file {filename}.")
             # If the configuration is not available or is invalid, exit
             sys.exit(1)
+
+    # Do a quick sanity check - if we don't have connection information
+    # there is nothing we can do.
+
+    if base_url is None or tenant_name is None or client_id is None or client_secret is None or refresh_token is None:
+        click.echo('No Prism connectivity information found - use "prism --help" for more information.')
+        sys.exit(1)
 
     if log_level is None:
         set_level = logging.INFO
