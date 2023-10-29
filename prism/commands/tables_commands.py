@@ -125,6 +125,11 @@ def tables_create(ctx, table_name, displayname, enableforanalysis, sourcename, s
     if table_name is not None:
         # If we got a name, set it in the table schema
         schema["name"] = table_name.replace(" ", "_")  # Minor clean-up
+
+        # Force the display name - there cannot be duplicate displayNames
+        # in the data catalog.
+        schema["displayName"] = table_name
+
         logger.debug(f'setting table name to {schema["name"]}')
     elif "name" not in schema:
         # The schema doesn't have a name and none was given - exit.
