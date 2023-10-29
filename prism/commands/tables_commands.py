@@ -129,7 +129,7 @@ def tables_create(ctx, table_name, displayname, enableforanalysis, sourcename, s
     elif "name" not in schema:
         # The schema doesn't have a name and none was given - exit.
         # Note: this could be true if we have a schema of only fields.
-        logger.error("Table --name must be specified.")
+        logger.error("Table --table_name must be specified.")
         sys.exit(1)
 
     if displayname is not None:
