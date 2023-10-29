@@ -26,7 +26,7 @@
             "displayName" : "Employee Tenure Years",
             "description": "Integer number of years in role.",
             "ordinal": 3,
-            "defaultValue": "0",
+            "defaultValue": 0,
             "type": {
                 "id": "Schema_Field_Type=Integer"
             }
@@ -38,9 +38,9 @@
             "ordinal": 4,
             "precision" : 9,
             "scale" : 2,
-            "defaultValue": "0.00",
+            "defaultValue": 1.00,
             "type": {
-                "id": "Schema_Field_Type=Integer"
+                "id": "Schema_Field_Type=Numeric"
             }
         },
         {
