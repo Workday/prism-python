@@ -193,7 +193,13 @@ def tables_edit(ctx, file, truncate):
 
 
 @click.command("patch")
-@click.option("-n", "--isName", help="Flag to treat the table argument as a name.")
+@click.option(
+    "-n",
+    "--isName",
+    is_flag=True,
+    default=False,
+    help="Flag to treat the table argument as a name.",
+)
 @click.option(
     "--displayName",
     is_flag=False,
@@ -222,7 +228,7 @@ def tables_edit(ctx, file, truncate):
     type=click.Choice(["true", "false"], case_sensitive=False),
 )
 @click.argument("table", required=True, type=str)
-@click.argument("file", required=False, type=click.Path(exists=True, dir_okay=False, readable=True))
+@click.argument("file", required=False, type=click.Path(dir_okay=False))
 @click.pass_context
 def tables_patch(ctx, isname, table, file, displayname, description, documentation, enableforanalysis):
     """Edit the specified attributes of an existing table with the specified id (or name).
@@ -230,7 +236,8 @@ def tables_patch(ctx, isname, table, file, displayname, description, documentati
     If an attribute is not provided in the request, it will not be changed.  To set an
     attribute to blank (empty), include the attribute without specifying a value.
 
-    [TABLE] The ID or API name (use -n option) of the table to patch
+    TABLE The ID or API name (use -n option) of the table to patch.
+
     [FILE] Optional file containing patch values for the table.
     """
 
@@ -304,7 +311,7 @@ def tables_patch(ctx, isname, table, file, displayname, description, documentati
         sys.exit(1)
 
     # Identify the existing table we are about to patch.
-    if not isname:
+    if isname:
         # Before doing anything, table name must exist.
         tables = p.tables_get(table_name=table)  # Exact match
 
