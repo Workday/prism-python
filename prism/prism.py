@@ -188,12 +188,15 @@ def table_to_bucket_schema(table):
         else:
             fld.update(operation_key_false)
 
-    # Now trim our field attributes to keep just what we need
+    # Now trim our field attributes to keep just what we need - these may
+    # or may not be in the schema - just make sure.
     for fld in fields:
         for attr in ["id", "displayName", "fieldId", "required", "externalId"]:
             if attr in fld:
                 del fld[attr]
 
+    # Use the parse options from the schema file if provided, otherwise
+    # automatically add defaults suitable for most CSV files.
     if "parseOptions" in table:
         bucket_schema["parseOptions"] = table["parseOptions"]
     else:
@@ -857,13 +860,13 @@ class Prism:
         Parameters
         ----------
         bucket_name : str
-            Name of the bucket to create, default to a new generated name.
+            Name of the bucket to create, default to a generated name.
         target_id : str
             The ID of the table for this bucket.
         target_name : str
             The name of the table for bucket.
-        schema : dict
-            A dictionary containing the schema fields describing the file.
+        schema : dict|file
+            A dictionary or JSON file containing the schema fields describing the file.
         operation : str
            Required, defaults to 'TruncateAndInsert' operation
 
@@ -873,42 +876,41 @@ class Prism:
             Information about the new bucket, or None if there was a problem.
         """
 
-        # If the caller didn't give us a name to use for the bucket,
-        # create a default name.
-        if bucket_name is None:
-            bucket_name = buckets_gen_name()
-        else:
-            bucket_name = bucket_name
-
+        # If the caller didn't give us a name for the new bucket, create a default name.
+        new_bucket_name = bucket_name if bucket_name is not None else buckets_gen_name()
         table_schema = None
 
         if schema is not None:
             if isinstance(schema, dict):
-                table_schema = schema
+                table_schema = schema  # Use as provided.
             elif isinstance(schema, str):
                 try:
                     with open(schema) as schema_file:
                         table_schema = json.load(schema_file)
                 except Exception as e:
+                    # We don't care what the problem is (missing file, bad JSON).
                     logger.error(e)
                     return None
             else:
                 logger.error("invalid schema - expecting dict or file name.")
                 return None
 
-        # Resolve the target table; if specified.
         if target_id is None and target_name is None:
-            # The caller expects the schema to come from the
-            # passed schema - do a quick sanity check.
+            # The caller expects the target table to be identified in the passed dict/file - do a quick sanity check.
             if table_schema is None:
                 logger.error("schema, target id or target name is required to create a bucket.")
                 return None
 
+            # To create a bucket based on ONLY the schema dict/file, the caller
+            # must have provide the ID of the target table and the fields
+            # expected in the CSV file.
             if "id" not in table_schema or "fields" not in table_schema:
                 logger.error('schema missing "id" or "fields" attribute.')
                 return None
         else:
-            if target_id is not None:  # Always use ID if provided - has precedence.
+            # The caller gave us in ID or name of the target table, make sure the table exists.
+            if target_id is not None:
+                # Always use ID if provided - has precedence over name.
                 table = self.tables_get(table_id=target_id, type_="full")  # Full=include fields object
 
                 if table is None:
@@ -923,15 +925,17 @@ class Prism:
 
                 table = tables["data"][0]
 
+            # If the caller DIDN'T provide a schema dict/file, use the table
+            # we just found to supply the ID and fields for the bucket.
             if table_schema is None:
                 table_schema = table
             else:
-                # Override the definition of the table in the schema.
+                # Use everything from the schema dict/file, but set/overwrite the ID
+                # to the target table we just looked up.
                 table_schema["id"] = table["id"]
 
-        # We have the table and the user didn't include a schema. Make a copy
-        # of the target table's schema.
-
+        # Regardless of how we got the table definition, reduce the definition
+        # to remove extrainious attributes for a bucket operation.
         compact_schema = schema_compact(table_schema)
 
         if compact_schema is None:
@@ -944,7 +948,7 @@ class Prism:
         url = self.prism_endpoint + "/buckets"
 
         data = {
-            "name": bucket_name,
+            "name": new_bucket_name,
             "operation": {"id": "Operation_Type=" + operation},
             "targetDataset": {"id": table_schema["id"]},
             "schema": bucket_schema,

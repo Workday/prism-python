@@ -1,42 +1,57 @@
 {
     "fields": [
         {
-            "defaultValue": "textField",
-            "description": "this is a Text Field",
-            "name": "State2",
-            "parseFormat": "",
-            "precision": 0,
+            "name": "id",
+            "displayName" : "Record ID",
+            "description": "This is an example of text primary key.",
             "ordinal": 1,
-            "scale": 0,
             "type": {
                 "id": "Schema_Field_Type=Text"
+            },
+            "required" : true,
+            "externalId" : true
+        },
+        {
+            "name": "name",
+            "displayName" : "Full Name",
+            "description": "Full name of employee.",
+            "ordinal": 2,
+            "type": {
+                "id": "Schema_Field_Type=Text"
+            },
+            "required" : true
+        },
+        {
+            "name": "employ_yrs",
+            "displayName" : "Employee Tenure Years",
+            "description": "Integer number of years in role.",
+            "ordinal": 3,
+            "defaultValue": "0",
+            "type": {
+                "id": "Schema_Field_Type=Integer"
             }
         },
         {
-            "defaultValue": "0",
-            "description": "this is an Integer Field",
-            "name": "Population2",
-            "parseFormat": "",
-            "precision": 9,
-            "ordinal": 2,
-            "scale": 0,
+            "name": "average_rating",
+            "displayName" : "Average Rating",
+            "description": "Average performance rating.",
+            "ordinal": 4,
+            "precision" : 9,
+            "scale" : 2,
+            "defaultValue": "0.00",
             "type": {
-                "id": "Schema_Field_Type=Numeric"
+                "id": "Schema_Field_Type=Integer"
+            }
+        },
+        {
+            "name": "hired",
+            "displayName" : "Hire Date",
+            "description": "Date of hire.",
+            "ordinal": 5,
+            "parseFormat": "yyyy-MM-DD",
+            "type": {
+                "id": "Schema_Field_Type=Date"
             }
         }
-    ],
-    "parseOptions": {
-        "charset": {
-            "id": "Encoding=UTF-8"
-        },
-        "fieldsDelimitedBy": ",",
-        "fieldsEnclosedBy": "\"",
-        "headerLinesToIgnore": 1,
-        "type": {
-            "id": "Schema_File_Type=Delimited"
-        }
-    },
-    "schemaVersion": {
-        "id": "Schema_Version=1.0"
-    }
+    ]
 }
