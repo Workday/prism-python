@@ -269,7 +269,7 @@ def tables_patch(ctx, isname, table, file, displayname, description, documentati
 
         for patch_attr in patch_data.keys():
             if patch_attr not in valid_attributes:
-                logger.error(f"unexpected attribute {patch_attr} in patch file")
+                logger.error(f'unexpected attribute "{patch_attr}" in patch file')
                 sys.exit(1)
 
     def set_patch_value(attr, value):
