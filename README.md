@@ -6,8 +6,8 @@ Python client library and command line interface (CLI) for interacting with
 Workday’s Prism API V3.
 
 Workday provides the Prism Analytics REST API web service to work with
-Prism Analytics tables, data change tasks, and datasets. You can develop
-a software program that uses the different resource endpoints to 
+Workday Prism Analytics tables, data change tasks, and datasets. You can develop
+a software program that uses the different REST endpoints to 
 programmatically create Prism Analytics tables and datasets and modify 
 data in them.
 
@@ -17,41 +17,42 @@ access to the Workday Prism Analytics REST API.
 The Python **client library** is a REST API wrapper managing the HTTP methods,
 URL endpoints and the data required by specific Workday Prism Analytics API
 REST operations.  Using this client library in Python projects simplifies interactions
-with the Workday Prism Analytics REST API while providing the rich functionality
+with the Workday Prism Analytics REST API providing the rich functionality
 of Workday Prism Analytics to your Python project.
 
 The **CLI** is a powerful tool for interacting with a Workday Prism Analytics 
 REST API client library, allowing you to quickly and easily perform Workday 
-Prism Analytics tasks from the command line.
+Prism Analytics tasks from any command line.
 
 ## Workday Prism Analytics REST API Requirements
 
-Workday Prism Analytics REST APIs use OAuth and the Workday configurable
-security model to secure Workday Prism Analytics operations in end-user
-applications.  The Workday Prism REST APIs act on behalf of the individual 
-using the client. The user's security profile affects the REST API access 
-to Workday resources.
+Workday Prism Analytics REST APIs use OAuth authentication and the Workday 
+configurable security model to authorize Workday Prism Analytics operations
+in end-user applications.  The Workday Prism REST APIs act on behalf of the 
+a Workday user using the client. The user's security profile affects the 
+REST API access to Workday resources.
 
-The Prism client library requires API Client credentials defined in the 
-target Workday tenant.  The API Client credentials authorize programmatic
-access to the Workday tenant and provides the identity of the Workday user
-to enforce security for all operations.
+The Prism client library, and by extension the CLI, require API Client 
+credentials setup in the target Workday tenant.  The API Client credentials 
+authorize programmatic access to the Workday tenant and provides the identity
+of the Workday user to enforce security for all operations.
 
-#### [Register a Workday Prism Analytics API Client.](https://doc.workday.com/admin-guide/en-us/workday-studio/integration-design/common-components/the-prismanalytics-subassembly/tzr1533120600898.html) ####
+### [Register a Workday Prism Analytics API Client.](https://doc.workday.com/admin-guide/en-us/workday-studio/integration-design/common-components/the-prismanalytics-subassembly/tzr1533120600898.html) ###
 
 In the target Workday Prism enabled tenant, register an integrations API client
 with Prism Analytics as its scope (task _Register API Client for Integrations_) to 
-create the Client ID and Client Secret values allowing programmatic access to the tenant.
+create the Client ID and Client Secret values allowing REST API access to the tenant.
 
 ![Register API](https://workday-prism-python.s3.amazonaws.com/Prism-Python-RegisterAPI.png)
 
-After clicking the Done button, the confirmation screen shows the
+After clicking the OK button, the confirmation screen shows the
 two important REST API credentials: **Client ID** and **Client Secret**.
 
 ![Client ID](https://workday-prism-python.s3.amazonaws.com/Prism-Python-Secret.png)
 
-**Record the secret value** for use with the Prism-Python client library. Workday
-never shows the secret value again after clicking the Done button.
+**Record the secret value** for use with the Prism-Python client library.
+
+> **Note**: Workday **never** shows the secret value again after clicking the Done button.
 
 > **Note**: As a Workday best practice, try to minimize the number
 > of unique API Clients since, for auditing reasons, they cannot be removed.
@@ -63,20 +64,39 @@ never shows the secret value again after clicking the Done button.
 > **Note**: Protect the Client ID and Client Secret values the same way as
 > any password.
 
-#### [Create Refresh Token](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ) ####
+### [Create Refresh Token](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ) ###
 
-Creating a Refresh Token assigns a Workday user identity to an API Client to control
-access to Workday Prism Analytics tables and data change tasks.  From the API Clients 
-for Integration, take the related action to Manage Refresh Tokens for Integrations.
+Creating a Refresh Token assigns a Workday user identity to an API Client to authorize
+access to Workday Prism Analytics tables and data change tasks.  There can be many
+refresh tokens for diffent Workday user associated with a single API Client.
+
+From the _View API Clients_ task, on the API Clients for Integration tab, take the related 
+action to Manage Refresh Tokens for Integrations.
 
 ![View API for Client Integrations](https://workday-prism-python.s3.amazonaws.com/ViewApiClients.png)
 
-#### [Obtain the Workday REST API Endpoint.](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ) ####
+Refresh tokens always identify a Workday user.  In this example, 
+the Refresh Token is for Logan Mcneil (lmcneil) and her security
+groups and policies are applied to every REST API operation.
+
+![Manage Refresh Token](https://workday-prism-python.s3.amazonaws.com/ManageRefreshToken.png)
+
+After clicking the OK button, copy the Refresh Token.
+
+![Refresh Token](https://workday-prism-python.s3.amazonaws.com/RefreshToken.png)
+
+> **Note**: Refresh Tokens can be created, re-generated, and removed as often as
+> necessary to identify the users allowed to use this API Client for Integration
+> end point.
+
+### [Obtain the Workday REST API Endpoint.](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ) ###
 
 In Workday, obtain the Workday REST API base URL endpoint that the Prism class requires
 as a parameter.  From the View API Client report, locate the base_url and tenant_name values.
 
 ![Base URL and Tenant Name](https://workday-prism-python.s3.amazonaws.com/URL-tenant.png)
+
+### Configuration Summary ###
 
 Before configuring the CLI or using the Prism client library, ensure you have the following values:
 
@@ -146,7 +166,7 @@ git version 2.40.1
 ## Prism-Python Install ##
 
 To automatically retrieve and install the latest version of this
-package directly from GitHub, use the following command:
+package directly GitHub, use the following command:
 
 ```bash
 pip install git+https://github.com/Workday/prism-python.git
@@ -158,7 +178,7 @@ It is also possible to install a specific tagged release with:
 pip install git+https://github.com/Workday/prism-python.git@0.2.0
 ```
 
-When either of these installations completes, the **prism** command
+When either of these installations commands complete, the **prism** command
 is available in your shell and provides access to the CLI.  For 
 example, after installation the following command returns 
 help on the available commands:
@@ -167,11 +187,12 @@ help on the available commands:
 prism --list
 ```
 
-## Configuration ##
+## Prism-Python Configuration ##
 
-The Python client library and CLI require the security credentials created and other
-operational options.  For the Python client library, these options must be
-supplied when the client library object is created.
+The Python client library and CLI require the security credentials from the target
+Workday Prism-enabled tenant, as well as other operational options.  For the Python 
+client library, these options must be supplied when the Python client library object
+is created.
 
 ```python
 import prism
@@ -187,16 +208,16 @@ pClientLib = prism.Prism(
 
 For the command line, the options can be set in three ways:
 
-| Configuration | Description                                                          |
-| ------------- |----------------------------------------------------------------------|
-| Command Line| Specified for each CLI operation.                                    |
+| Configuration         | Description                                                          |
+|-----------------------|----------------------------------------------------------------------|
+| Command Line          | Specified for each CLI operation.                                    |
 | Environment Variables | Set in the operating system environment and used for CLI operations. |
-| Configuration File | One or more configurations stored in a file.                         |
+| Configuration File    | One or more configurations stored in a file.                         |
 
 When multiple configurations are available, i.e., specified on the command line 
-AND as environment variables, AND in a configuration file the first instance of
-an option is used, i.e., command line preferred over environment and environment
-is preferred over configuration file.
+and as environment variables, and in a configuration file the first instance of
+an option is used, i.e., command line used before environment variables and environment
+variables are used before configuration file values.
 
 The following configuration options should be available: 
 
@@ -214,7 +235,8 @@ The following configuration options should be available:
 
 ### Using Command line options ###
 
-Command line are always used regardless of other configurations and should appear **before** the CLI command. 
+Command line options are always used regardless of other configurations and should appear **before** 
+the CLI command. 
 
  ```bash
 prism --base_url=<my base url> \
@@ -227,7 +249,7 @@ prism --base_url=<my base url> \
 
 ### Using Environment variables ###
 
-These options are set using operating specific commands.  For example, the following commands
+Set these options using operating specific commands.  For example, the following commands
 set the environment variables in a Bash shell:
 
 ```bash
@@ -244,10 +266,9 @@ prism tables get
 
 ### Using a Configuration file ###
 
-The CLI automatically looks for ``prism.ini`` in the current directory, and if found
-reads configuration options from one section.  Use the ``--config_name`` option to
-select a configuration other than [default].
-a config_name option is not passed on the command line.
+The CLI automatically looks for the file ``prism.ini`` in the current directory, and if found
+reads configuration options from a section, by default the **[default]** section.  Use the 
+``--config_name`` option to select a configuration other than **[default]**.
 
 > **NOTE**: The client secrets and refresh tokens are the same as passwords and should be protected.
 
@@ -270,8 +291,8 @@ prism_log_level = INFO
 ```
 
 ```python
-prism --config_file=myconfig.ini \
-      --config_name=integration \
+prism --config_file myconfig.ini \
+      --config_name integration \
       tables get
 ```
 
@@ -279,15 +300,15 @@ prism --config_file=myconfig.ini \
 
 ### Create a new Prism table
 The following Python script uses the Prism-Python client library to create
-a new Workday Prism Analytics Table and loads the contents of a delimited
+a new Workday Prism Analytics Table and load the contents of a delimited
 and compressed CSV file (.csv.gz).
 
 ```python
 import os
 import prism
 
-# STEP 1 - Initialize the Prism-Python client library
-# using environment variables.
+# STEP 1 - Initialize the Prism-Python client library using
+#          environment variables.
 pClientLib = prism.Prism(
     os.getenv("workday_base_url"),
     os.getenv("workday_tenant_name"),
@@ -296,25 +317,24 @@ pClientLib = prism.Prism(
     os.getenv("prism_refresh_token")
 )
 
-# STEP 2 - Create a new table using the definition
-# of fields provided by the schema.json file.
+# STEP 2 - Create a new table using the definition of fields provided 
+#          by the schema.json file.
 table = prism.tables_create(
+    p=pClientLib,
     table_name="my_new_table",
     file="/path/to/schema.json"
 )
 
-# Print JSON response body describing 
-# the new table.
+# Print JSON response body describing the new table.
 print(table)
 
-# STEP 3 - Use the convenience function
-# prism.upload_file() to upload a local file
-# to the table.  Notice the "operation"
-# is Insert for the first load.
+# STEP 3 - Use the convenience function prism.upload_file() to upload 
+#          a local file to the table.  Notice the "operation" is Insert 
+#          for the first load.
 prism.upload_file(
-    pClientLib,
-    "/path/to/data.csv.gz", 
-    table["id"],
+    p=pClientLib,
+    file="/path/to/data.csv.gz", 
+    table_id=table["id"],
     operation="Insert"
 )
 ```
@@ -322,8 +342,8 @@ prism.upload_file(
 ### Manage data in an existing table
 
 The Workday Prism REST API provides multiple operations for adding,
-updating or removing data from a Workday Prism Analytics table.  One of
-the following table operations must be specified for a loading operation.\:
+updating and removing data from a Workday Prism Analytics table.  One of
+the following table operations must be specified for a loading operation.
 
 - **Insert**: Workday keeps any existing data in the target table 
 and adds new data from the source.
@@ -336,7 +356,7 @@ target table based on data from the source.  All matching rows,
 based on the external ID value, are updated.
 - **Upsert**: Workday inserts data from the source if it 
 doesn't exist in the target table, and updates the data if it does
-based on the external ID value from the source.
+using the external ID value from the source.
 
 When using a `Delete`, `Update`, or `Upsert` operation, the source data
 must contain an ``externalId`` attribute matching the ``externalId``
@@ -360,7 +380,7 @@ function automatically performs the gzip operation.
 
 ## CLI Example
 
-The command line interface (CLI) provides another way to interact with
+The command line interface (CLI) is a no-code way to interact with
 the Workday Prism Analytics REST API. The CLI expects tenant and credential
 options to be passed on the command line, stored as environment variables, 
 or stored in a configuration file (see Configuration section above).
@@ -375,21 +395,20 @@ working directory with a ``[default]`` section.
 # Get help for the tables command.
 [ user@host]$ prism tables --help
 
-# Use the Workday Prism Analytics REST API
-# GET:/tables endpoint to list Prism tables
-# you have access to.
+# Use the Workday Prism Analytics REST API GET:/tables endpoint 
+# to list Prism tables you have access to.
 [ user@host]$ prism tables get
 
-# Create a new Prism Table using the Workday
-# Prism Analytics REST API POST:/tables endpoint
+# Create a new Prism Table using the Workday Prism Analytics 
+# REST API POST:/tables endpoint
 [ user@host]$ prism tables create my_new_table /path/to/schema.json
 
 # Upload data to the new table using the ID value - the default
 # table operation is "TruncateAndInsert"
 [ user@host]$ prism tables upload 83dd72bd7b911000ca2d790e719a0000 /path/to/file1.csv.gz
 
-# Upload mulitple CSV files to a Prism API table.  Notice the -isName (-n)
-# option tells the CLI to retrieve the table id.
+# Upload mulitple CSV files to a Prism API table.  Notice the --isName (-n)
+# option tells the CLI to lookup the table id.
 [ user@host]$ prism tables upload \
                  -operation Insert \
                  -isName my_new_table \
