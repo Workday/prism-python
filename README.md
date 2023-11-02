@@ -28,7 +28,7 @@ Prism Analytics tasks from any command line.
 
 Workday Prism Analytics REST APIs use OAuth authentication and the Workday 
 configurable security model to authorize Workday Prism Analytics operations
-in end-user applications.  The Workday Prism REST APIs act on behalf of the 
+in end-user applications.  The Workday Prism REST APIs act on behalf of 
 a Workday user using the client. The user's security profile affects the 
 REST API access to Workday resources.
 
@@ -68,7 +68,7 @@ two important REST API credentials: **Client ID** and **Client Secret**.
 
 Creating a Refresh Token assigns a Workday user identity to an API Client to authorize
 access to Workday Prism Analytics tables and data change tasks.  There can be many
-refresh tokens for diffent Workday user associated with a single API Client.
+refresh tokens for different Workday user associated with a single API Client.
 
 From the _View API Clients_ task, on the API Clients for Integration tab, take the related 
 action to Manage Refresh Tokens for Integrations.
@@ -194,7 +194,7 @@ Workday Prism-enabled tenant, as well as other operational options.  For the Pyt
 client library, these options must be supplied when the Python client library object
 is created.
 
-```python
+```
 import prism
 
 pClientLib = prism.Prism(
@@ -216,7 +216,7 @@ For the command line, the options can be set in three ways:
 
 When multiple configurations are available, i.e., specified on the command line 
 and as environment variables, and in a configuration file the first instance of
-an option is used, i.e., command line used before environment variables and environment
+an option is used, e.g., command line used before environment variables and environment
 variables are used before configuration file values.
 
 The following configuration options should be available: 
@@ -290,7 +290,7 @@ prism_refresh_token = jtqqqq...qfcm9s5
 prism_log_level = INFO
 ```
 
-```python
+```bash
 prism --config_file myconfig.ini \
       --config_name integration \
       tables get
@@ -303,7 +303,7 @@ The following Python script uses the Prism-Python client library to create
 a new Workday Prism Analytics Table and load the contents of a delimited
 and compressed CSV file (.csv.gz).
 
-```python
+```
 import os
 import prism
 
@@ -354,18 +354,19 @@ based external ID data from the source.
 - **Update**: Workday updates only existing data in the 
 target table based on data from the source.  All matching rows,
 based on the external ID value, are updated.
-- **Upsert**: Workday inserts data from the source if it 
-doesn't exist in the target table, and updates the data if it does
-using the external ID value from the source.
+- **Upsert**: Workday inserts new data from the source if it 
+doesn't exist in the target table, and updates existing data
+using the external ID value from the source to locate matching
+rows.
 
 When using a `Delete`, `Update`, or `Upsert` operation, the source data
 must contain an ``externalId`` attribute matching the ``externalId``
 defined in the target table, i.e., a primary key value.
 
-```python
+```
 # STEP 4 - Use the prism.upload convenience function
-# prism.upload() to truncate the existing data and
-# load new data from two CSV files.
+# to truncate the existing data and load new data
+# from two CSV files.
 prism.upload_file(
     pClientLib, 
     ["/path/to/newdata-1.csv", "/path/to/newdata-2.csv"], 
@@ -407,7 +408,7 @@ working directory with a ``[default]`` section.
 # table operation is "TruncateAndInsert"
 [ user@host]$ prism tables upload 83dd72bd7b911000ca2d790e719a0000 /path/to/file1.csv.gz
 
-# Upload mulitple CSV files to a Prism API table.  Notice the --isName (-n)
+# Upload multiple CSV files to a Prism API table.  Notice the --isName (-n)
 # option tells the CLI to lookup the table id.
 [ user@host]$ prism tables upload \
                  -operation Insert \
