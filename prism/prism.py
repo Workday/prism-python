@@ -1486,8 +1486,82 @@ def resolve_file_list(files):
     return target_files
 
 
+def tables_create(p, table_name=None, display_name=None, enable_for_analysis=True, source_name=None, source_wid=None, file=None):
+    """Create Prism table
+
+    Parameters
+    ----------
+    p : Prism
+        Instantiated Prism class from prism.Prism()
+
+    table_name : str
+        Table name - overrides name from schema
+
+    display_name : str
+        Specify a display name - defaults to name
+
+    enableForAnalysis : boolean
+        Enable this table for analytic
+
+    sourceName : str
+        The API name of an existing table to copy
+
+    sourceWID : str
+        The WID of an existing table to copy
+
+    file : str
+        File containing the schema to be used to create the table
+
+    Returns
+    -------
+    If the request is successful, a dictionary containing information about
+    the table is returned.
+    """
+
+    # We can assume a schema was found/built - get_schema sys.exits if there is a problem.
+    schema = load_schema(p, file, source_name, source_wid)
+
+    # Initialize a new schema with the particulars for this table operation.
+    if table_name is not None:
+
+        # If we got a name, set it in the table schema
+        schema["name"] = table_name.replace(" ", "_")  # Minor clean-up
+
+        # Force the display name - there cannot be duplicate displayNames
+        # in the data catalog.
+        schema["displayName"] = table_name
+        logger.debug(f'setting table name to {schema["name"]}')
+
+    elif "name" not in schema:
+        # The schema doesn't have a name and none was given - exit.
+        # Note: this could be true if we have a schema of only fields.
+        logger.error("Table --table_name must be specified.")
+        sys.exit(1)
+
+    if display_name is not None:
+        # If we got a display name, set it in the schema
+        schema["displayName"] = display_name
+
+    elif "displayName" not in schema:
+        # Default the display name to the name if not in the schema.
+        schema["displayName"] = table_name
+        logger.debug(f'defaulting displayName to {schema["displayName"]}')
+
+    if enable_for_analysis is not None:
+        schema["enableForAnalysis"] = enable_for_analysis
+
+    elif "enableForAnalysis" not in schema:
+        # Default to False - do not enable.
+        schema["enableForAnalysis"] = False
+        logger.debug("defaulting enableForAnalysis to False.")
+
+    # create the table
+    table = p.tables_post(schema)
+
+    return table
+
 def upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
-    """Create a new Prism table.
+    """Upload a file to an existing Prism table
 
     Parameters
     ----------

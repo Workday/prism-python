@@ -8,7 +8,7 @@ setup(
     name="prism",
     version=versioneer.get_version(),
     description="Python API client to load data into Prism.",
-    author="Curtis Hampton",
+    author="Curtis Hampton, Mark Waldron, Jacinta Corbett, Mark Greynolds",
     author_email="CurtLHampton@gmail.com",
     url="https://github.com/Workday/prism-python",
     packages=["prism", "prism.commands"],
