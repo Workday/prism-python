@@ -10,7 +10,11 @@ logger = logging.getLogger("prismCLI")
 
 @click.command("get")
 @click.option(
-    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the table argument as a name.",
+    "-n",
+    "--isName",
+    is_flag=True,
+    default=False,
+    help="Flag to treat the table argument as a name.",
 )
 @click.option(
     "-l",
@@ -35,10 +39,17 @@ logger = logging.getLogger("prismCLI")
     help="How much information returned for each table.",
 )
 @click.option(
-    "-c", "--compact", is_flag=True, default=False, help="Compact the table schema for use in edit (put) operations.",
+    "-c",
+    "--compact",
+    is_flag=True,
+    default=False,
+    help="Compact the table schema for use in edit (put) operations.",
 )
 @click.option(
-    "-s", "--search", is_flag=True, help="Enable substring search of NAME in api name or display name.",
+    "-s",
+    "--search",
+    is_flag=True,
+    help="Enable substring search of NAME in api name or display name.",
 )
 @click.argument("table", required=False)
 @click.pass_context
@@ -86,7 +97,12 @@ def tables_get(ctx, isname, table, limit, offset, type_, compact, search):
 @click.option("-n", "--table_name", help="Table name - overrides name from schema.")
 @click.option("-d", "--displayName", help="Specify a display name - defaults to name.")
 @click.option(
-    "-e", "--enableForAnalysis", type=bool, is_flag=True, default=None, help="Enable this table for analytics.",
+    "-e",
+    "--enableForAnalysis",
+    type=bool,
+    is_flag=True,
+    default=None,
+    help="Enable this table for analytics.",
 )
 @click.option("-s", "--sourceName", help="The API name of an existing table to copy.")
 @click.option("-w", "--sourceWID", help="The WID of an existing table to copy.")
@@ -148,7 +164,11 @@ def tables_create(ctx, table_name, displayname, enableforanalysis, sourcename, s
 
 @click.command("edit")
 @click.option(
-    "-t", "--truncate", is_flag=True, default=False, help="Truncate the table before updating.",
+    "-t",
+    "--truncate",
+    is_flag=True,
+    default=False,
+    help="Truncate the table before updating.",
 )
 @click.argument("file", required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 @click.pass_context
@@ -174,7 +194,11 @@ def tables_edit(ctx, file, truncate):
 
 @click.command("patch")
 @click.option(
-    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the table argument as a name.",
+    "-n",
+    "--isName",
+    is_flag=True,
+    default=False,
+    help="Flag to treat the table argument as a name.",
 )
 @click.option(
     "--displayName",
@@ -198,7 +222,10 @@ def tables_edit(ctx, file, truncate):
     help="Set the documentation for an existing table.",
 )
 @click.option(
-    "--enableForAnalysis", is_flag=False, default=None, type=click.Choice(["true", "false"], case_sensitive=False),
+    "--enableForAnalysis",
+    is_flag=False,
+    default=None,
+    type=click.Choice(["true", "false"], case_sensitive=False),
 )
 @click.argument("table", required=True, type=str)
 @click.argument("file", required=False, type=click.Path(dir_okay=False))
@@ -307,7 +334,11 @@ def tables_patch(ctx, isname, table, file, displayname, description, documentati
 
 @click.command("upload")
 @click.option(
-    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the table argument as a name.",
+    "-n",
+    "--isName",
+    is_flag=True,
+    default=False,
+    help="Flag to treat the table argument as a name.",
 )
 @click.option(
     "-o",
@@ -344,7 +375,11 @@ def tables_upload(ctx, table, isname, operation, file):
 
 @click.command("truncate")
 @click.option(
-    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the table argument as a name.",
+    "-n",
+    "--isName",
+    is_flag=True,
+    default=False,
+    help="Flag to treat the table argument as a name.",
 )
 @click.argument("table", required=True)
 @click.pass_context
