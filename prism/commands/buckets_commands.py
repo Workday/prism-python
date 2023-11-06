@@ -8,11 +8,7 @@ logger = logging.getLogger("prismCLI")
 
 @click.command("get")
 @click.option(
-    "-n",
-    "--isName",
-    is_flag=True,
-    default=False,
-    help="Flag to treat the bucket or table argument as a name.",
+    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the bucket or table argument as a name.",
 )
 @click.option(
     "-l",
@@ -37,12 +33,7 @@ logger = logging.getLogger("prismCLI")
     help="How much information to be returned in response JSON.",
 )
 @click.option(
-    "-s",
-    "--search",
-    is_flag=True,
-    show_default=True,
-    default=False,
-    help="Use substring search bucket or table.",
+    "-s", "--search", is_flag=True, show_default=True, default=False, help="Use substring search bucket or table.",
 )
 @click.option("--table", help="The id or name of a Prism table to list all buckets.")
 @click.argument("bucket", required=False)
@@ -99,11 +90,7 @@ def buckets_get(ctx, bucket, table, isname, limit, offset, type_, search):
     help="Schema JSON file for the target table.",
 )
 @click.option(
-    "-o",
-    "--operation",
-    default="TruncateAndInsert",
-    show_default=True,
-    help="Operation to perform on the table.",
+    "-o", "--operation", default="TruncateAndInsert", show_default=True, help="Operation to perform on the table.",
 )
 @click.argument("bucket", required=False)
 @click.pass_context
@@ -120,11 +107,7 @@ def buckets_create(ctx, target_name, target_id, file, operation, bucket):
         sys.exit(1)
 
     bucket = p.buckets_create(
-        bucket_name=bucket,
-        target_id=target_id,
-        target_name=target_name,
-        schema=file,
-        operation=operation,
+        bucket_name=bucket, target_id=target_id, target_name=target_name, schema=file, operation=operation,
     )
 
     if bucket is not None:
@@ -136,19 +119,12 @@ def buckets_create(ctx, target_name, target_id, file, operation, bucket):
 
 @click.command("files")
 @click.option(
-    "-n",
-    "--target_name",
-    default=None,
-    help="Name of the table to associate with the bucket.",
+    "-n", "--target_name", default=None, help="Name of the table to associate with the bucket.",
 )
 @click.option("-i", "--target_id", default=None, help="Table ID to associate with the table.")
 @click.option("-f", "--file", default=None, help="Schema JSON file for the target table.")
 @click.option(
-    "-o",
-    "--operation",
-    default="TruncateAndInsert",
-    show_default=True,
-    help="Operation to perform on the table.",
+    "-o", "--operation", default="TruncateAndInsert", show_default=True, help="Operation to perform on the table.",
 )
 @click.option("-b", "--bucket", help="Bucket name to load files.", default=None)
 @click.option(
@@ -189,11 +165,7 @@ def buckets_files(ctx, target_name, target_id, file, operation, bucket, complete
 
 @click.command("complete")
 @click.option(
-    "-n",
-    "--isName",
-    is_flag=True,
-    default=False,
-    help="Flag to treat the bucket argument as a name.",
+    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the bucket argument as a name.",
 )
 @click.argument("bucket", required=True)
 @click.pass_context
@@ -230,11 +202,7 @@ def buckets_complete(ctx, isname, bucket):
 
 @click.command("errorFile")
 @click.option(
-    "-n",
-    "--isName",
-    is_flag=True,
-    default=False,
-    help="Flag to treat the bucket argument as a name.",
+    "-n", "--isName", is_flag=True, default=False, help="Flag to treat the bucket argument as a name.",
 )
 @click.argument("bucket", required=True)
 @click.pass_context

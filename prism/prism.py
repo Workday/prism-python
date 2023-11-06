@@ -228,13 +228,7 @@ class Prism:
     """
 
     def __init__(
-        self,
-        base_url,
-        tenant_name,
-        client_id,
-        client_secret,
-        refresh_token,
-        version="v3",
+        self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v3",
     ):
         """Init the Prism class with required attributes."""
 
@@ -441,13 +435,7 @@ class Prism:
         self.bearer_token_timestamp = None
 
     def tables_get(
-        self,
-        table_name=None,
-        table_id=None,
-        limit=None,
-        offset=None,
-        type_="summary",
-        search=False,
+        self, table_name=None, table_id=None, limit=None, offset=None, type_="summary", search=False,
     ):
         """Obtain details for all tables or a given table(s).
 
@@ -836,12 +824,7 @@ class Prism:
         return return_buckets
 
     def buckets_create(
-        self,
-        bucket_name=None,
-        target_name=None,
-        target_id=None,
-        schema=None,
-        operation="TruncateAndInsert",
+        self, bucket_name=None, target_name=None, target_id=None, schema=None, operation="TruncateAndInsert",
     ):
         """Create a Prism bucket to upload files.
 
@@ -1089,13 +1072,7 @@ class Prism:
         return None
 
     def dataChanges_get(
-        self,
-        datachange_name=None,
-        datachange_id=None,
-        limit=None,
-        offset=None,
-        type_="summary",
-        search=False,
+        self, datachange_name=None, datachange_id=None, limit=None, offset=None, type_="summary", search=False,
     ):
         """ """
         # We are doing a dataChanges GET operation.
@@ -1486,7 +1463,9 @@ def resolve_file_list(files):
     return target_files
 
 
-def tables_create(p, table_name=None, display_name=None, enable_for_analysis=True, source_name=None, source_wid=None, file=None):
+def tables_create(
+    p, table_name=None, display_name=None, enable_for_analysis=True, source_name=None, source_wid=None, file=None
+):
     """Create Prism table
 
     Parameters
@@ -1559,6 +1538,7 @@ def tables_create(p, table_name=None, display_name=None, enable_for_analysis=Tru
     table = p.tables_post(schema)
 
     return table
+
 
 def upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
     """Upload a file to an existing Prism table
