@@ -1487,7 +1487,7 @@ def resolve_file_list(files):
 
 
 def upload_file(p, file, table_id=None, table_name=None, operation="TruncateAndInsert"):
-    """Create a new Prism table.
+    """Upload a file to an existing Prism table
 
     Parameters
     ----------
