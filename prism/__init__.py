@@ -1,8 +1,24 @@
-from prism.prism import Prism, load_schema, create_table, upload_file
+from prism.prism import (
+    Prism,
+    set_logging,
+    schema_compact,
+    tables_create,
+    upload_file,
+    load_schema,
+    truncate_table,
+)
 
 from ._version import get_versions
 
 __version__ = get_versions()["version"]
 del get_versions
 
-__all__ = ["load_schema", "Prism", "create_table", "upload_file"]
+__all__ = [
+    "Prism",
+    "set_logging",
+    "schema_compact",
+    "tables_create",
+    "upload_file",
+    "load_schema",
+    "truncate_table",
+]

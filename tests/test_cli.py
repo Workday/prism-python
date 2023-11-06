@@ -1,8 +1,8 @@
 from click.testing import CliRunner
-from prism.cli import main
+from prism.cli import cli
 
 
 def test_cli():
     runner = CliRunner()
-    result = runner.invoke(main, ["--help"])
+    result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0

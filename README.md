@@ -3,49 +3,62 @@
 # Prism-Python
 
 Python client library and command line interface (CLI) for interacting with
-Workday’s Prism API V2.
+Workday’s Prism API V3.
+
+Workday provides the Prism Analytics REST API web service to work with
+Workday Prism Analytics tables, data change tasks, and datasets. You can develop
+a software program that uses the different REST endpoints to 
+programmatically create Prism Analytics tables and datasets and modify 
+data in them.
+
+The Python **client library** is a REST API wrapper managing the HTTP methods,
+URL endpoints and the data required by specific Workday Prism Analytics API
+REST operations.  Using this client library in Python projects simplifies interactions
+with the Workday Prism Analytics REST API providing the rich functionality
+of Workday Prism Analytics to your Python project.
+
+The **CLI** is a powerful tool for interacting with a Workday Prism Analytics 
+REST API client library, allowing you to quickly and easily perform Workday 
+Prism Analytics tasks from any command line.
 
 ## Install
-You may install the latest version directly from GitHub with:
+
+To automatically retrieve and install the latest version of this
+package directly GitHub, use the following command:
 
 ```bash
-pip install git+https://github.com/Workday/prism-python.git
+$ pip install git+https://github.com/Workday/prism-python.git
 ```
 
 It is also possible to install a specific tagged release with:
 
 ```bash
-pip install git+https://github.com/Workday/prism-python.git@0.2.0
+$ pip install git+https://github.com/Workday/prism-python.git@0.3.0
 ```
 
 ## Requirements
 
-1. [Register a Workday Prism Analytics API Client.](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/qAugF2pRAGtECVLHKdMO_A)
+Workday Prism Analytics REST APIs use OAuth authentication and the Workday 
+configurable security model to authorize Workday Prism Analytics operations
+in end-user applications.  The Workday Prism REST APIs act on behalf of 
+a Workday user using the client. The user's security profile affects the 
+REST API access to Workday resources.
 
-In Workday, register an integrations API client with Prism Analytics as its
-scope. Obtain the Client ID, Client Secret, and Refresh Token values that the
-Prism class requires as parameters.
+The Prism client library, and by extension the CLI, require API Client 
+credentials setup in the target Workday tenant.  The API Client credentials 
+authorize programmatic access to the Workday tenant and provides the identity
+of the Workday user to enforce security for all operations.
 
-2. [Obtain the Workday REST API Endpoint.](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ)
+1. [Register a Workday Prism Analytics API Client.](https://doc.workday.com/admin-guide/en-us/workday-studio/integration-design/common-components/the-prismanalytics-subassembly/tzr1533120600898.html)
+2. [Create Refresh Token](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ)
+3. [Obtain the Workday REST API Endpoint.](https://doc.workday.com/reader/J1YvI9CYZUWl1U7_PSHyHA/L_RKkfJI6bKu1M2~_mfesQ)
 
-In Workday, obtain the Workday REST API endpoint that the Prism class requires
-as a parameter.
-
-3. For ease of use, set the following environment variables using the values obtained above:
-
-```bash
-export workday_base_url=<INSERT WORKDAY BASE URL HERE>
-export workday_tenant_name=<INSERT WORKDAY TENANT NAME HERE>
-export prism_client_id=<INERT PRISM CLIENT ID HERE>
-export prism_client_secret=<INSERT PRISM CLIENT SECRET HERE>
-export prism_refresh_token=<INSERT PRISM REFRESH TOKEN HERE>
-```
 
 ## Python Example
 
-### Create a new table with Prism API Version 2
+### Create a new table with Prism API Version 3
 
-```python
+```{python}
 import os
 import prism
 
@@ -55,50 +68,50 @@ p = prism.Prism(
     os.getenv("workday_tenant_name"),
     os.getenv("prism_client_id"),
     os.getenv("prism_client_secret"),
-    os.getenv("prism_refresh_token"),
-    version="v2"
+    os.getenv("prism_refresh_token")
 )
 
-# read in your table schema
-schema = prism.load_schema("/path/to/schema.json")
+# create a new table based on the schema.json file
+table = prism.tables_create(
+    p,
+    table_name="my_new_table",
+    file="/path/to/schema.json"
+)
 
-# create an empty API table with your schema
-table = prism.create_table(p, "my_new_table", schema=schema["fields"])
-
-# print details about new table
+# print JSON response body describing the new table.
 print(table)
 ```
 
-### Manage data in an existing table with Prism API Version 2
+### Manage data in an existing table with Prism API Version 3
 Table Operations Available: `TruncateandInsert`, `Insert`, `Update`, `Upsert`,
 `Delete`.
 
-To use the `Update`, `Upsert`, or `Delete` operations, you must specify an
-external id field within your table schema.
-
-```python
-# upload GZIP CSV file to your table
-prism.upload_file(p, "/path/to/file.csv.gz", table["id"], operation="TruncateandInsert")
+```{python}
+prism.upload_file(
+    p,
+    file="/path/to/data.csv.gz", 
+    table_id=table["id"],
+    operation="Insert"
+)
 ```
 
 ## CLI Example
 
-The command line interface (CLI) provides another way to interact with the Prism API.
-The CLI expects your credentials to be stored as environment variables, but they can
-also be passed into the CLI manually through the use of optional arguments.
-
 ```bash
 # get help with the CLI
-prism --help
+$ prism --help
 
-# list the Prism API tables that you have access to
-prism list
+# get help for the tables command
+$ prism tables --help
 
-# create a new Prism API table
-prism create my_new_table /path/to/schema.json
+# list Prism tables you have access to.
+$ prism tables get
 
-# upload data to a Prism API table
-prism upload /path/to/file.csv.gz bbab30e3018b01a723524ce18010811b
+# create a new Prism table 
+$ prism tables create my_new_table /path/to/schema.json
+
+# upload data to the new table
+$ prism tables upload 83dd72bd7b911000ca2d790e719a0000 /path/to/file1.csv.gz
 ```
 
 ## Bugs
