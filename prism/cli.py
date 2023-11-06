@@ -28,10 +28,18 @@ def param_fixup(value, config, config_name, option):
 @click.group(help="CLI for interacting with Workday’s Prism API")
 # Tenant specific parameters
 @click.option(
-    "--base_url", envvar="workday_base_url", type=str, required=False, help="The base URL for the API client",
+    "--base_url",
+    envvar="workday_base_url",
+    type=str,
+    required=False,
+    help="The base URL for the API client",
 )
 @click.option(
-    "--tenant_name", envvar="workday_tenant_name", type=str, required=False, help="The name of your Workday tenant",
+    "--tenant_name",
+    envvar="workday_tenant_name",
+    type=str,
+    required=False,
+    help="The name of your Workday tenant",
 )
 @click.option(
     "--client_id",
@@ -86,7 +94,16 @@ def param_fixup(value, config, config_name, option):
 )
 @click.pass_context
 def cli(
-    ctx, base_url, tenant_name, client_id, client_secret, refresh_token, log_level, log_file, config_file, config_name,
+    ctx,
+    base_url,
+    tenant_name,
+    client_id,
+    client_secret,
+    refresh_token,
+    log_level,
+    log_file,
+    config_file,
+    config_name,
 ):
     # Attempt to locate a configuration file - this is not required and config
     # parameters are only used if the configuration values are not passed on

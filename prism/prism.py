@@ -228,7 +228,13 @@ class Prism:
     """
 
     def __init__(
-        self, base_url, tenant_name, client_id, client_secret, refresh_token, version="v3",
+        self,
+        base_url,
+        tenant_name,
+        client_id,
+        client_secret,
+        refresh_token,
+        version="v3",
     ):
         """Init the Prism class with required attributes."""
 
@@ -435,7 +441,13 @@ class Prism:
         self.bearer_token_timestamp = None
 
     def tables_get(
-        self, table_name=None, table_id=None, limit=None, offset=None, type_="summary", search=False,
+        self,
+        table_name=None,
+        table_id=None,
+        limit=None,
+        offset=None,
+        type_="summary",
+        search=False,
     ):
         """Obtain details for all tables or a given table(s).
 
@@ -824,7 +836,12 @@ class Prism:
         return return_buckets
 
     def buckets_create(
-        self, bucket_name=None, target_name=None, target_id=None, schema=None, operation="TruncateAndInsert",
+        self,
+        bucket_name=None,
+        target_name=None,
+        target_id=None,
+        schema=None,
+        operation="TruncateAndInsert",
     ):
         """Create a Prism bucket to upload files.
 
@@ -1072,7 +1089,13 @@ class Prism:
         return None
 
     def dataChanges_get(
-        self, datachange_name=None, datachange_id=None, limit=None, offset=None, type_="summary", search=False,
+        self,
+        datachange_name=None,
+        datachange_id=None,
+        limit=None,
+        offset=None,
+        type_="summary",
+        search=False,
     ):
         """ """
         # We are doing a dataChanges GET operation.
@@ -1502,7 +1525,6 @@ def tables_create(
 
     # Initialize a new schema with the particulars for this table operation.
     if table_name is not None:
-
         # If we got a name, set it in the table schema
         schema["name"] = table_name.replace(" ", "_")  # Minor clean-up
 

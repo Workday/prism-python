@@ -2,9 +2,9 @@ name: prism-dev
 channels:
   - defaults
 dependencies:
-  - python=3.7
-  - click>=6,<8
-  - requests>=2.20.0,<3
+  - python=3.8
+  - click
+  - requests
   - pytest
-  - black=19.10b0
+  - black
   - flake8

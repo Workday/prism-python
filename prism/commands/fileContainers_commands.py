@@ -40,7 +40,10 @@ def fileContainers_get(ctx, id):
 
 @click.command("load")
 @click.option(
-    "-i", "--id", default=None, help="Target File container ID - defaults to a new container.",
+    "-i",
+    "--id",
+    default=None,
+    help="Target File container ID - defaults to a new container.",
 )
 @click.argument("file", nargs=-1, type=click.Path(exists=True))
 @click.pass_context

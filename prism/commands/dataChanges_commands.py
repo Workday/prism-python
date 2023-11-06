@@ -9,13 +9,23 @@ logger = logging.getLogger("prismCLI")
 
 @click.command("get")
 @click.option(
-    "-n", "--isName", default=False, is_flag=True, help="Flag to treat the dct argument as a name.",
+    "-n",
+    "--isName",
+    default=False,
+    is_flag=True,
+    help="Flag to treat the dct argument as a name.",
 )
 @click.option(
-    "-l", "--limit", default=-1, help="The maximum number of object data entries included in the response.",
+    "-l",
+    "--limit",
+    default=-1,
+    help="The maximum number of object data entries included in the response.",
 )
 @click.option(
-    "-o", "--offset", default=0, help="The offset to the first object in a collection to include in the response.",
+    "-o",
+    "--offset",
+    default=0,
+    help="The offset to the first object in a collection to include in the response.",
 )
 @click.option(
     "-t",
@@ -65,7 +75,11 @@ def dataChanges_get(ctx, isname, dct, limit, offset, type_, search):
 
 @click.command("validate")
 @click.option(
-    "-n", "--isName", default=False, is_flag=True, help="Flag to treat the dct argument as a name.",
+    "-n",
+    "--isName",
+    default=False,
+    is_flag=True,
+    help="Flag to treat the dct argument as a name.",
 )
 @click.option("-s", "--search", is_flag=True, help="Use contains search substring for --name.")
 @click.argument("dct", required=True)
@@ -106,7 +120,11 @@ def dataChanges_validate(ctx, isname, dct, search):
 
 @click.command("run")
 @click.option(
-    "-n", "--isName", default=False, is_flag=True, help="Flag to treat the dct argument as a name.",
+    "-n",
+    "--isName",
+    default=False,
+    is_flag=True,
+    help="Flag to treat the dct argument as a name.",
 )
 @click.argument("dct", required=True)
 @click.argument("fid", required=False)
@@ -146,10 +164,18 @@ def dataChanges_run(ctx, dct, fid, isname):
 
 @click.command("activities")
 @click.option(
-    "-n", "--isName", default=False, is_flag=True, help="Flag to treat the dct argument as a name.",
+    "-n",
+    "--isName",
+    default=False,
+    is_flag=True,
+    help="Flag to treat the dct argument as a name.",
 )
 @click.option(
-    "-s", "--status", is_flag=True, default=False, help="Return only the status of the activity.",
+    "-s",
+    "--status",
+    is_flag=True,
+    default=False,
+    help="Return only the status of the activity.",
 )
 @click.argument("dct", required=True)
 @click.argument("activityID", required=True)
@@ -190,13 +216,25 @@ def dataChanges_activities(ctx, dct, activityid, status, isname):
 
 @click.command("upload")
 @click.option(
-    "-n", "--isName", default=False, is_flag=True, help="Flag to treat the dct argument as a name.",
+    "-n",
+    "--isName",
+    default=False,
+    is_flag=True,
+    help="Flag to treat the dct argument as a name.",
 )
 @click.option(
-    "-w", "--wait", default=False, is_flag=True, help="Wait for the data change task to complete.",
+    "-w",
+    "--wait",
+    default=False,
+    is_flag=True,
+    help="Wait for the data change task to complete.",
 )
 @click.option(
-    "-v", "--verbose", default=False, is_flag=True, help="Display additional information.",
+    "-v",
+    "--verbose",
+    default=False,
+    is_flag=True,
+    help="Display additional information.",
 )
 @click.argument("dct", required=True)
 @click.argument("file", required=True, nargs=-1, type=click.Path(exists=True))
