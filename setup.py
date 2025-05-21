@@ -1,12 +1,11 @@
 from setuptools import setup
-import versioneer
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
     name="prism",
-    version=versioneer.get_version(),
+    version="0.3.0",
     description="Python API client to load data into Prism.",
     author="Curtis Hampton, Mark Waldron, Jacinta Corbett, Mark Greynolds",
     author_email="CurtLHampton@gmail.com",
